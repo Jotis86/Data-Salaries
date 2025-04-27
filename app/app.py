@@ -1052,37 +1052,37 @@ def prediction_page():
 
 # ======= MAIN APP =======
 def main():
-    # Apply unified CSS to fix styling issues across all pages
+    # Apply unified CSS with WHITE text for better visibility on dark backgrounds
     st.markdown("""
     <style>
-        /* Base text and background colors with stronger contrast */
+        /* Base text and background colors for dark theme compatibility */
         body {
-            color: #000000 !important;
-            background-color: #ffffff !important;
+            color: #ffffff !important;
+            background-color: #1e1e1e !important;
         }
         
-        /* Force ALL text elements to have dark color */
+        /* Force ALL text elements to have white color for visibility */
         p, h1, h2, h3, h4, h5, h6, li, span, div, label, .stMarkdown, 
         .stText, [data-testid="stVerticalBlock"] p {
-            color: #000000 !important;
+            color: #ffffff !important;
             font-weight: 500 !important;
         }
         
         /* Fix sidebar styling */
         [data-testid="stSidebar"], .css-1d391kg, .css-1lcbmhc {
-            background-color: #f5f5f5 !important;
+            background-color: #2c3e50 !important;
         }
         
         /* Make sidebar headers bold and very visible */
         [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, 
         [data-testid="stSidebar"] h3, [data-testid="stSidebar"] .stTitle {
-            color: #1E3A8A !important;
+            color: #3498db !important;
             font-weight: 700 !important;
         }
         
-        /* Make sidebar paragraphs dark and easy to read */
+        /* Make sidebar paragraphs visible */
         [data-testid="stSidebar"] p, [data-testid="stSidebar"] li {
-            color: #000000 !important;
+            color: #ffffff !important;
             font-weight: 500 !important;
         }
         
@@ -1092,66 +1092,69 @@ def main():
         }
         .stRadio label {
             background-color: transparent !important;
-            color: #000000 !important;
+            color: #ffffff !important;
             font-weight: 500 !important;
             padding: 8px !important;
             border-radius: 4px !important;
         }
         .stRadio label:hover {
-            background-color: rgba(30, 136, 229, 0.1) !important;
+            background-color: rgba(52, 152, 219, 0.3) !important;
         }
         .stRadio label[data-baseweb="radio"] input:checked + span {
-            background-color: #1976D2 !important;
-            border-color: #1976D2 !important;
+            background-color: #3498db !important;
+            border-color: #3498db !important;
         }
         
         /* Style headings throughout the app */
         .main-header {
-            color: #1E88E5 !important;
+            color: #3498db !important;
             font-size: 2.5rem !important;
             font-weight: 800 !important;
         }
         .section-header {
-            color: #111111 !important;
+            color: #ffffff !important;
             font-size: 1.8rem !important;
             font-weight: 700 !important;
         }
         .subsection-header {
-            color: #222222 !important;
+            color: #ecf0f1 !important;
             font-size: 1.3rem !important;
             font-weight: 650 !important;
         }
         
-        /* Container backgrounds with dark text */
+        /* Container backgrounds with dark theme */
         .chart-container, .metric-container, .info-card, .info-box, 
         .success-box, .warning-box, .error-box, .limitations-container {
-            background-color: white !important;
-            color: #000000 !important;
-            border: 1px solid #e0e0e0 !important;
+            background-color: #2c3e50 !important;
+            color: #ffffff !important;
+            border: 1px solid #34495e !important;
+            border-radius: 8px !important;
+            padding: 15px !important;
         }
         
         /* Ensure list items are visible */
         .styled-list li {
-            color: #000000 !important;
+            color: #ffffff !important;
             font-weight: 500 !important;
             margin-bottom: 10px !important;
         }
         .styled-list li:before {
-            color: #3B82F6 !important;
+            color: #3498db !important;
         }
         
         /* Alert boxes */
         .stAlert {
-            background-color: #e1f5fe !important;
+            background-color: #2c3e50 !important;
+            border: 1px solid #3498db !important;
         }
         .stAlert p, .stAlert div {
-            color: #000000 !important;
+            color: #ffffff !important;
             font-weight: 500 !important;
         }
         
-        /* Hero section explicitly keeps white text but increases visibility */
+        /* Hero section */
         .hero-container {
-            background: linear-gradient(135deg, #1E88E5 0%, #0D47A1 100%) !important;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%) !important;
             padding: 2rem !important;
         }
         .hero-container h1, .hero-title {
@@ -1176,16 +1179,26 @@ def main():
         st.image("https://img.freepik.com/free-vector/illustration-data-analysis-graph_53876-18139.jpg", width=200)
         st.title("Navigation")
         
-        # FIXED: Use a direct approach instead of updating session state first
-        # This avoids the double-click issue
-        page = st.radio(
-            "Go to:", 
-            ["Home", "Visualizations", "Prediction Tool"], 
-            index=["Home", "Visualizations", "Prediction Tool"].index(st.session_state.page)
-        )
+        # FIX FOR DOUBLE-CLICK ISSUE:
+        # Use a callback approach to update immediately on first click
+        def navigate_to(page_name):
+            st.session_state.page = page_name
+            st.rerun()
         
-        # Update session state
-        st.session_state.page = page
+        # Use buttons instead of radio to ensure immediate response
+        col1, col2, col3 = st.columns(3)
+        
+        if st.button("Home", key="home_btn"):
+                navigate_to("Home")
+        
+        if st.button("Visualizations", key="viz_btn"):
+                navigate_to("Visualizations")
+        
+        if st.button("Prediction", key="pred_btn"):
+                navigate_to("Prediction Tool")
+        
+        # Visual indicator of current page
+        #st.markdown(f"**Current: {st.session_state.page}**")
         
         st.markdown("---")
         st.markdown("### About")
