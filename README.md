@@ -56,6 +56,9 @@ The project is deployed as an interactive web application using Streamlit, makin
 - **Technology Stack Analysis**: Discover which skills are most valuable for your role
 - **Salary Growth Projections**: Visualize potential earnings over a 5-year period
 
+### Try It Yourself
+👉 **[Launch the Data Salaries App](https://data-salaries-app.streamlit.app)** to explore the interactive salary prediction tool.
+
 ## 🔮 Future Improvements
 - Implementation of more advanced feature selection techniques
 - Incorporation of temporal data for long-term trend analysis
