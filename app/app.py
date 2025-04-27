@@ -1056,6 +1056,88 @@ def main():
     if 'page' not in st.session_state:
         st.session_state.page = "Home"
     
+    # Apply unified CSS to fix styling issues across all pages
+    st.markdown("""
+    <style>
+        /* Base text and background colors - ensure visibility */
+        body {
+            color: #333333 !important;
+            background-color: #f9f9f9 !important;
+        }
+        p, h1, h2, h3, h4, h5, h6, li, span, div {
+            color: #333333 !important;
+        }
+        
+        /* Fix sidebar styling */
+        .css-1d391kg, .css-1lcbmhc, [data-testid="stSidebar"] {
+            background-color: #f5f5f5 !important;
+        }
+        
+        /* Sidebar text and controls */
+        .css-163ttbj, .css-10trblm, [data-testid="stSidebar"] h1, 
+        [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, 
+        [data-testid="stSidebar"] p, [data-testid="stSidebar"] li {
+            color: #1E3A8A !important;
+        }
+        
+        /* Radio buttons in sidebar */
+        .stRadio > div {
+            padding: 10px 0 !important;
+        }
+        .stRadio label {
+            background-color: transparent !important;
+            color: #333333 !important;
+        }
+        .stRadio label:hover {
+            background-color: rgba(30, 136, 229, 0.1) !important;
+        }
+        .stRadio label[data-baseweb="radio"] input:checked + span {
+            background-color: #1976D2 !important;
+            border-color: #1976D2 !important;
+        }
+        
+        /* Override for container classes to ensure proper background/text contrast */
+        .main-header, .section-header, .subsection-header {
+            color: #1E88E5 !important;
+        }
+        .card-title, .card-icon, .custom-header {
+            color: #1E3A8A !important;
+        }
+        
+        /* Container backgrounds */
+        .chart-container, .metric-container, .info-card, .info-box, 
+        .success-box, .warning-box, .error-box, .limitations-container {
+            background-color: white !important;
+            color: #333333 !important;
+        }
+        
+        /* Hero section explicitly keeps white text */
+        .hero-container {
+            background: linear-gradient(135deg, #1E88E5 0%, #0D47A1 100%) !important;
+        }
+        .hero-container h1, .hero-container p, .hero-container span, .hero-title, .hero-text {
+            color: white !important;
+        }
+        
+        /* List items in all contexts */
+        .styled-list li {
+            color: #333333 !important;
+        }
+        .styled-list li:before {
+            color: #3B82F6 !important;
+        }
+        
+        /* Info box styles */
+        .stAlert {
+            background-color: #e1f5fe !important;
+            color: #333333 !important;
+        }
+        .stAlert p {
+            color: #333333 !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
     # Sidebar navigation
     with st.sidebar:
         st.image("https://img.freepik.com/free-vector/illustration-data-analysis-graph_53876-18139.jpg", width=200)
@@ -1071,7 +1153,6 @@ def main():
         st.markdown("---")
         st.markdown("### About")
         st.info("This app helps data professionals estimate their market value and understand salary trends in the field.")
-        
     
     # Display the selected page
     if st.session_state.page == "Home":
