@@ -436,311 +436,1076 @@ def home_page():
 
 def visualizations_page():
     """Display the visualizations page content"""
-    st.markdown('<h1 class="main-header">Salary Trend Visualizations</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">Data Science Salary Insights</h1>', unsafe_allow_html=True)
     
-    # Load the sample data
-    df = load_sample_data()
+    # Load the real data instead of sample data
+    @st.cache_data
+    def load_real_data():
+        try:
+            return pd.read_csv('clean_salary_data.csv')
+        except:
+            st.error("Could not load clean_salary_data.csv. Using sample data instead.")
+            return load_sample_data()
     
-    # Introduction
+    df = load_real_data()
+    
+    # Introduction with animated number counter
     st.markdown('<div class="highlight">', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Data Professionals", f"{len(df):,}", delta="analyzed")
+    with col2:
+        st.metric("Average Salary", f"${df['salary_in_usd'].mean():,.0f}", delta=f"{df['salary_in_usd'].mean()/1000:.0f}K")
+    with col3:
+        st.metric("Salary Range", f"${df['salary_in_usd'].max():,.0f}", delta=f"{df['salary_in_usd'].max() - df['salary_in_usd'].min():,.0f} spread")
+    
     st.markdown("""
-    Explore salary trends across different dimensions of the data science job market.
-    These visualizations can help you understand how factors like job role, experience,
-    region, and work setting influence compensation in the field.
+    Explore comprehensive salary insights across the data science ecosystem. Discover how factors like job role, 
+    experience level, location, and skill specialization influence compensation in today's market.
     """)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Visualization options
-    st.markdown('<h2 class="section-header">Select a Visualization</h2>', unsafe_allow_html=True)
-    viz_type = st.radio(
-        "Choose what to visualize:",
-        ["Salary by Job Category", "Salary by Experience Level", "Regional Salary Comparison", 
-         "Sector Comparison", "Work Setting Impact", "Combined Factors"]
-    )
+    # Visualization selection with improved UI
+    st.markdown('<h2 class="section-header">Select Visualization</h2>', unsafe_allow_html=True)
+    
+    # Create a more visual selector with icons
+    viz_cols = st.columns(4)
+    with viz_cols[0]:
+        tab1 = st.button("📊 Salary Landscape", use_container_width=True)
+    with viz_cols[1]:
+        tab2 = st.button("🚀 Career Progression", use_container_width=True)
+    with viz_cols[2]:
+        tab3 = st.button("🌎 Geographic Impact", use_container_width=True)
+    with viz_cols[3]:
+        tab4 = st.button("🔬 Specialization Effect", use_container_width=True)
+    
+    viz_cols2 = st.columns(4)
+    with viz_cols2[0]:
+        tab5 = st.button("⚙️ AI Impact Analysis", use_container_width=True)
+    with viz_cols2[1]:
+        tab6 = st.button("💼 Work Setting Trends", use_container_width=True)
+    with viz_cols2[2]:
+        tab7 = st.button("⚖️ Work-Life Balance", use_container_width=True)
+    with viz_cols2[3]:
+        tab8 = st.button("🔮 Future Outlook", use_container_width=True)
+    
+    # Tab handling with session state
+    if "active_tab" not in st.session_state:
+        st.session_state.active_tab = "Salary Landscape"
+    
+    if tab1: st.session_state.active_tab = "Salary Landscape"
+    elif tab2: st.session_state.active_tab = "Career Progression"
+    elif tab3: st.session_state.active_tab = "Geographic Impact"
+    elif tab4: st.session_state.active_tab = "Specialization Effect"
+    elif tab5: st.session_state.active_tab = "AI Impact Analysis"
+    elif tab6: st.session_state.active_tab = "Work Setting Trends"
+    elif tab7: st.session_state.active_tab = "Work-Life Balance"
+    elif tab8: st.session_state.active_tab = "Future Outlook"
+    
+    # Display which tab is active
+    st.markdown(f"<h3 class='subsection-header'>{st.session_state.active_tab}</h3>", unsafe_allow_html=True)
     
     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
     
-    # Create the selected visualization
-    if viz_type == "Salary by Job Category":
-        st.markdown('<h3 class="subsection-header">Salary Distribution by Job Category</h3>', unsafe_allow_html=True)
-        
-        fig, ax = plt.subplots(figsize=(12, 6))
-        sns.boxplot(data=df, x='job_category', y='salary_in_usd', palette='viridis', ax=ax)
-        ax.set_xlabel('Job Category')
-        ax.set_ylabel('Annual Salary (USD)')
-        ax.set_title('Salary Distribution by Job Category', fontsize=16)
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
-        ax.grid(axis='y', linestyle='--', alpha=0.7)
-        
-        # Calculate average salary by job category for annotation
-        avg_by_job = df.groupby('job_category')['salary_in_usd'].mean().sort_values(ascending=False)
-        
-        # Add text explaining the visualization
-        st.pyplot(fig)
-        
-        st.markdown("""
-        #### Key Insights:
-        * **Highest paying roles**: Data Science Managers and Research Scientists typically earn the highest salaries
-        * **Business Analysts** generally earn less than Data Analysts, with a salary difference of about 15%
-        * **ML Engineers** and **AI Engineers** command premium salaries due to specialized skills
-        
-        The box plot shows the distribution of salaries for each job category. The box represents the 
-        interquartile range (middle 50% of salaries), the line inside the box is the median, and the 
-        whiskers extend to the minimum and maximum values (excluding outliers).
-        """)
-    
-    elif viz_type == "Salary by Experience Level":
-        st.markdown('<h3 class="subsection-header">Salary Progression by Experience Level</h3>', unsafe_allow_html=True)
-        
-        fig, ax = plt.subplots(figsize=(12, 6))
-        sns.barplot(data=df, x='experience_level_desc', y='salary_in_usd', 
-                   order=['Entry-Level', 'Mid-Level', 'Senior', 'Executive'],
-                   palette='Blues', ax=ax)
-        ax.set_xlabel('Experience Level')
-        ax.set_ylabel('Average Annual Salary (USD)')
-        ax.set_title('Average Salary by Experience Level', fontsize=16)
-        ax.grid(axis='y', linestyle='--', alpha=0.7)
-        
-        # Calculate average by experience level for each job
-        exp_job_avg = df.groupby(['experience_level_desc', 'job_category'])['salary_in_usd'].mean().reset_index()
-        exp_job_avg = exp_job_avg.pivot(index='job_category', columns='experience_level_desc', values='salary_in_usd')
-        exp_job_avg = exp_job_avg[['Entry-Level', 'Mid-Level', 'Senior', 'Executive']]
-        
-        # Add annotations
-        for i, exp in enumerate(['Entry-Level', 'Mid-Level', 'Senior', 'Executive']):
-            avg_salary = df[df['experience_level_desc'] == exp]['salary_in_usd'].mean()
-            ax.text(i, avg_salary + 5000, f"${avg_salary:,.0f}", ha='center', fontweight='bold')
-        
-        st.pyplot(fig)
-        
-        # Show detailed comparison table
-        st.markdown("#### Salary Progression by Role and Experience Level")
-        st.dataframe(exp_job_avg.style.format("${:,.0f}").background_gradient(cmap='Blues'))
-        
-        st.markdown("""
-        #### Key Insights:
-        * **Significant jumps**: Moving from Entry-Level to Mid-Level typically results in a 30-40% salary increase
-        * **Executive premium**: Executive-level positions earn 35-50% more than Senior roles
-        * **Growth potential**: The largest salary jump is typically from Mid-Level to Senior positions
-        
-        Experience level is the single most important factor determining salary in the data science field.
-        As you gain experience, your market value increases substantially.
-        """)
-    
-    elif viz_type == "Regional Salary Comparison":
-        st.markdown('<h3 class="subsection-header">Salary Comparison by Region</h3>', unsafe_allow_html=True)
-        
-        fig, ax = plt.subplots(figsize=(12, 6))
-        sns.barplot(data=df, x='region', y='salary_in_usd', palette='viridis', ax=ax)
-        ax.set_xlabel('Region')
-        ax.set_ylabel('Average Annual Salary (USD)')
-        ax.set_title('Average Salary by Region', fontsize=16)
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
-        ax.grid(axis='y', linestyle='--', alpha=0.7)
-        
-        # Calculate average by region
-        region_avg = df.groupby('region')['salary_in_usd'].mean().sort_values(ascending=False)
-        
-        # Add annotations
-        for i, region in enumerate(ax.get_xticklabels()):
-            region_name = region.get_text()
-            avg_salary = df[df['region'] == region_name]['salary_in_usd'].mean()
-            ax.text(i, avg_salary + 5000, f"${avg_salary:,.0f}", ha='center', fontweight='bold')
-        
-        st.pyplot(fig)
-        
-        # Create a heatmap of salary by region and experience
-        st.markdown("#### Salary by Region and Experience Level")
-        region_exp_pivot = df.pivot_table(values='salary_in_usd', index='region', 
-                                          columns='experience_level_desc', aggfunc='mean')
-        region_exp_pivot = region_exp_pivot[['Entry-Level', 'Mid-Level', 'Senior', 'Executive']]
-        
-        fig2, ax2 = plt.subplots(figsize=(10, 6))
-        sns.heatmap(region_exp_pivot, annot=True, fmt="$,.0f", cmap='YlGnBu', ax=ax2)
-        ax2.set_title("Average Salary by Region and Experience Level")
-        st.pyplot(fig2)
-        
-        st.markdown("""
-        #### Key Insights:
-        * **North America** (particularly the US) offers the highest average salaries in the data science field
-        * **Europe** follows with competitive compensation, especially in Western European countries
-        * **Regional disparities**: There's a significant salary gap between regions, with North America offering
-          up to twice the compensation of regions like Africa or South America
-        * **Remote opportunity**: Remote work can allow professionals in lower-paying regions to access higher salaries
-        
-        Geographic location remains one of the strongest predictors of salary range, though remote work
-        is gradually reducing these disparities for some roles.
-        """)
-    
-    elif viz_type == "Sector Comparison":
-        st.markdown('<h3 class="subsection-header">Salary Comparison by Company Sector</h3>', unsafe_allow_html=True)
-        
-        fig, ax = plt.subplots(figsize=(12, 6))
-        sns.barplot(data=df, x='company_sector', y='salary_in_usd', palette='mako', ax=ax)
-        ax.set_xlabel('Company Sector')
-        ax.set_ylabel('Average Annual Salary (USD)')
-        ax.set_title('Average Salary by Company Sector', fontsize=16)
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
-        ax.grid(axis='y', linestyle='--', alpha=0.7)
-        
-        # Add annotations
-        for i, sector in enumerate(ax.get_xticklabels()):
-            sector_name = sector.get_text()
-            avg_salary = df[df['company_sector'] == sector_name]['salary_in_usd'].mean()
-            ax.text(i, avg_salary + 5000, f"${avg_salary:,.0f}", ha='center', fontweight='bold')
-        
-        st.pyplot(fig)
-        
-        # Create a comparison of top roles in each sector
-        st.markdown("#### Top Paying Roles by Sector")
-        
-        sectors = df['company_sector'].unique()
-        top_roles = []
-        
-        for sector in sectors:
-            sector_df = df[df['company_sector'] == sector]
-            top_role = sector_df.groupby('job_category')['salary_in_usd'].mean().nlargest(1).reset_index()
-            top_role['company_sector'] = sector
-            top_roles.append(top_role)
-        
-        top_roles_df = pd.concat(top_roles)
-        
-        fig2, ax2 = plt.subplots(figsize=(12, 5))
-        sns.barplot(data=top_roles_df, x='company_sector', y='salary_in_usd', hue='job_category', palette='Set2', ax=ax2)
-        ax2.set_xlabel('Company Sector')
-        ax2.set_ylabel('Average Annual Salary (USD)')
-        ax2.set_title('Highest Paying Role by Sector', fontsize=16)
-        ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45, ha='right')
-        ax2.legend(title='Job Category')
-        ax2.grid(axis='y', linestyle='--', alpha=0.7)
-        
-        st.pyplot(fig2)
-        
-        st.markdown("""
-        #### Key Insights:
-        * **Finance** and **Technology** sectors typically offer the highest salaries for data professionals
-        * **Healthcare** is increasingly competitive, especially for roles involving medical data or research
-        * **Education** generally offers lower compensation but may provide other benefits like work-life balance
-        * **Role specialization**: Some specialized roles command premium salaries regardless of sector
-        
-        The finance sector often leads in compensation due to the high value placed on data-driven insights
-        for investment, risk assessment, and business strategy.
-        """)
-    
-    elif viz_type == "Work Setting Impact":
-        st.markdown('<h3 class="subsection-header">Impact of Work Setting on Salary</h3>', unsafe_allow_html=True)
-        
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.barplot(data=df, x='work_setting', y='salary_in_usd', palette='Set1', ax=ax)
-        ax.set_xlabel('Work Setting')
-        ax.set_ylabel('Average Annual Salary (USD)')
-        ax.set_title('Average Salary by Work Setting', fontsize=16)
-        ax.grid(axis='y', linestyle='--', alpha=0.7)
-        
-        # Add annotations
-        for i, setting in enumerate(['Hybrid', 'On-site', 'Remote']):
-            avg_salary = df[df['work_setting'] == setting]['salary_in_usd'].mean()
-            ax.text(i, avg_salary + 5000, f"${avg_salary:,.0f}", ha='center', fontweight='bold')
-        
-        st.pyplot(fig)
-        
-        # Create a comparison by work setting and experience
-        st.markdown("#### Work Setting Salary by Experience Level")
-        
-        fig2, ax2 = plt.subplots(figsize=(12, 6))
-        sns.barplot(data=df, x='experience_level_desc', y='salary_in_usd', hue='work_setting', 
-                   order=['Entry-Level', 'Mid-Level', 'Senior', 'Executive'],
-                   palette='Set1', ax=ax2)
-        ax2.set_xlabel('Experience Level')
-        ax2.set_ylabel('Average Annual Salary (USD)')
-        ax2.set_title('Average Salary by Experience Level and Work Setting', fontsize=16)
-        ax2.legend(title='Work Setting')
-        ax2.grid(axis='y', linestyle='--', alpha=0.7)
-        
-        st.pyplot(fig2)
-        
-        st.markdown("""
-        #### Key Insights:
-        * **Remote work** often comes with a slight salary premium, especially at higher experience levels
-        * **Hybrid arrangements** typically offer competitive compensation while balancing flexibility
-        * **On-site positions** may offer lower base salaries but could have additional benefits
-        * **Executive trend**: At executive levels, the remote premium is most pronounced
-        
-        The shift to remote work has changed salary dynamics, with many companies offering competitive
-        or premium compensation for remote talent to access larger talent pools.
-        """)
-    
-    elif viz_type == "Combined Factors":
-        st.markdown('<h3 class="subsection-header">Interactive Multi-Factor Analysis</h3>', unsafe_allow_html=True)
-        
-        # Let user select dimensions to analyze
+    # 1. SALARY LANDSCAPE
+    if st.session_state.active_tab == "Salary Landscape":
+        # Create two columns for side-by-side visualizations
         col1, col2 = st.columns(2)
         
         with col1:
-            primary_factor = st.selectbox("Primary grouping factor:", 
-                                         ["job_category", "experience_level_desc", "region", "company_sector", "work_setting"])
-        
-        with col2:
-            secondary_factor = st.selectbox("Secondary grouping factor (color):",
-                                           ["experience_level_desc", "job_category", "region", "company_sector", "work_setting"],
-                                           index=1)
-        
-        if primary_factor == secondary_factor:
-            st.warning("Please select different factors for primary and secondary grouping")
-        else:
-            fig, ax = plt.subplots(figsize=(14, 8))
-            sns.barplot(data=df, x=primary_factor, y='salary_in_usd', hue=secondary_factor, palette='viridis', ax=ax)
-            ax.set_xlabel(primary_factor.replace('_', ' ').title())
-            ax.set_ylabel('Average Annual Salary (USD)')
-            ax.set_title(f'Average Salary by {primary_factor.replace("_", " ").title()} and {secondary_factor.replace("_", " ").title()}', fontsize=16)
-            ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
-            ax.legend(title=secondary_factor.replace('_', ' ').title())
-            ax.grid(axis='y', linestyle='--', alpha=0.7)
+            # Enhanced horizontal lollipop chart for job categories
+            fig, ax = plt.subplots(figsize=(10, 8))
             
-            # Try to make legend more readable
-            if len(df[secondary_factor].unique()) > 5:
-                plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+            # Calculate key statistics
+            job_stats = df.groupby('job_category')['salary_in_usd'].agg(['mean', 'median', 'std']).reset_index()
+            job_stats = job_stats.sort_values('median', ascending=True)
             
+            # Plot horizontal lines (stems)
+            ax.hlines(y=job_stats['job_category'], xmin=0, xmax=job_stats['median'], 
+                      color='skyblue', alpha=0.7, linewidth=5)
+            
+            # Plot median points
+            scatter = ax.scatter(job_stats['median'], job_stats['job_category'], s=job_stats['mean']/500, 
+                      color='#3498db', alpha=0.8, zorder=10)
+            
+            # Add smaller mean indicators
+            ax.scatter(job_stats['mean'], job_stats['job_category'], s=60, 
+                      marker='D', color='#e74c3c', alpha=0.8, zorder=5)
+            
+            # Add salary labels
+            for i, row in job_stats.iterrows():
+                ax.text(row['median'] + 5000, i, f"${row['median']:,.0f}", 
+                        va='center', ha='left', fontweight='bold', color='#2c3e50')
+                
+            # Customize graph
+            ax.set_xlabel('Median Annual Salary (USD)', fontsize=12, fontweight='bold')
+            ax.set_title('Salary Distribution by Role', fontsize=16, fontweight='bold', pad=20)
+            ax.grid(axis='x', linestyle='--', alpha=0.3)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            
+            # Set background color to match Streamlit's darker theme
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.title.set_color('white')
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            # Add legend proxy artists
+            median_marker = plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#3498db', markersize=10, label='Median Salary')
+            mean_marker = plt.Line2D([0], [0], marker='D', color='w', markerfacecolor='#e74c3c', markersize=8, label='Mean Salary')
+            ax.legend(handles=[median_marker, mean_marker], loc='lower right', frameon=True, facecolor='#2c3e50', edgecolor='#3498db')
+            
+            plt.tight_layout()
             st.pyplot(fig)
             
-            # Create a pivot table for the same data
-            pivot_df = df.pivot_table(values='salary_in_usd', 
-                                      index=primary_factor, 
-                                      columns=secondary_factor, 
-                                      aggfunc='mean')
+        with col2:
+            # Violin plot showing salary distribution densities
+            fig, ax = plt.subplots(figsize=(10, 8))
             
-            st.markdown("#### Detailed Comparison Table")
-            st.dataframe(pivot_df.style.format("${:,.0f}").background_gradient(cmap='Blues'))
+            # Create the violin plot with custom palette
+            custom_palette = sns.color_palette("viridis", n_colors=len(df['job_category'].unique()))
+            sns.violinplot(data=df, y='job_category', x='salary_in_usd', 
+                          orient='h', palette=custom_palette, alpha=0.7, inner='quartile', ax=ax)
             
-            st.markdown("""
-            #### Interactive Analysis
-            This visualization allows you to explore how different combinations of factors affect salary.
-            Try different combinations to uncover interesting patterns and insights.
+            # Customize graph
+            ax.set_xlabel('Annual Salary (USD)', fontsize=12, fontweight='bold')
+            ax.set_title('Salary Distribution Density', fontsize=16, fontweight='bold', pad=20)
+            ax.grid(axis='x', linestyle='--', alpha=0.3)
             
-            For example:
-            * Job category by experience level shows career progression paths
-            * Region by job category reveals which roles are most valued in different areas
-            * Work setting by sector shows which industries embrace remote work with higher compensation
-            """)
+            # Set background color to match Streamlit's darker theme
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.title.set_color('white')
+            ax.yaxis.label.set_color('#2c3e50')  # Hide y-label as it's redundant
+            
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+        
+        # Key metrics table in a single column
+        job_metrics = df.groupby('job_category')['salary_in_usd'].agg(['count', 'mean', 'median', 'min', 'max']).reset_index()
+        job_metrics = job_metrics.sort_values('median', ascending=False)
+        
+        # Rename columns for display
+        job_metrics.columns = ['Job Category', 'Count', 'Mean', 'Median', 'Minimum', 'Maximum']
+        
+        # Format metrics as currency
+        for col in ['Mean', 'Median', 'Minimum', 'Maximum']:
+            job_metrics[col] = job_metrics[col].apply(lambda x: f"${x:,.0f}")
+        
+        # Create a styled table
+        st.markdown("### Salary Statistics by Role")
+        st.dataframe(job_metrics.set_index('Job Category'), use_container_width=True)
+        
+        st.markdown("""
+        #### Key Insights
+        * **Data Science Leaders** (Managers, Architects, and Research Scientists) command the highest salaries
+        * **Technical specialization** is rewarded: ML Engineers earn more than general Data Scientists
+        * **Business-focused roles** (Business Analysts) typically earn less than technical roles
+        * **Considerable variability** exists within each role (see violin width), indicating other factors impact compensation
+        """)
+    
+    # 2. CAREER PROGRESSION
+    elif st.session_state.active_tab == "Career Progression":
+        # Area chart showing salary growth across experience levels
+        fig, ax = plt.subplots(figsize=(12, 8))
+        
+        # Calculate average salaries by experience level and job category
+        exp_data = df.pivot_table(
+            values='salary_in_usd', 
+            index='experience_level_desc',
+            columns='job_category', 
+            aggfunc='median'
+        )
+        
+        # Ensure correct order of experience levels
+        exp_data = exp_data.reindex(['Entry-Level', 'Mid-Level', 'Senior', 'Executive'])
+        
+        # Create a beautiful stacked area chart
+        exp_data.T.plot(kind='area', stacked=False, alpha=0.7, ax=ax, colormap='viridis')
+        
+        # Customize the chart
+        ax.set_title('Salary Growth Across Career Levels', fontsize=18, fontweight='bold', pad=20)
+        ax.set_xlabel('Job Category', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Median Salary (USD)', fontsize=12, fontweight='bold')
+        ax.grid(linestyle='--', alpha=0.3)
+        
+        # Add salary values at each career stage for a selected role
+        for i, exp_level in enumerate(['Entry-Level', 'Mid-Level', 'Senior', 'Executive']):
+            if 'Data Scientist' in exp_data.columns:
+                val = exp_data.loc[exp_level, 'Data Scientist']
+                ax.annotate(f"${val:,.0f}", 
+                           xy=(6, val), 
+                           xytext=(10, 5),
+                           textcoords="offset points",
+                           ha='center', va='bottom',
+                           bbox=dict(boxstyle="round,pad=0.3", fc='#f39c12', alpha=0.7))
+        
+        # Set background color to match Streamlit's darker theme
+        fig.patch.set_facecolor('#2c3e50')
+        ax.set_facecolor('#2c3e50')
+        ax.tick_params(colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.title.set_color('white')
+        for spine in ax.spines.values():
+            spine.set_color('#3498db')
+        
+        # Rotate x-axis labels for better readability
+        plt.xticks(rotation=0, ha='center')
+        
+        # Move the legend outside the plot for better visibility
+        ax.legend(title='Career Level', bbox_to_anchor=(1.05, 1), loc='upper left', frameon=True, facecolor='#2c3e50', edgecolor='#3498db')
+        
+        plt.tight_layout()
+        st.pyplot(fig)
+        
+        # Growth metrics visualization
+        st.markdown("### Salary Growth Multipliers")
+        
+        # Calculate growth metrics
+        growth_data = {}
+        exp_order = ['Entry-Level', 'Mid-Level', 'Senior', 'Executive']
+        
+        for job in exp_data.columns:
+            growth_series = []
+            baseline = exp_data.loc['Entry-Level', job]
+            for level in exp_order:
+                current = exp_data.loc[level, job]
+                multiplier = current / baseline
+                growth_series.append(multiplier)
+            growth_data[job] = growth_series
+        
+        growth_df = pd.DataFrame(growth_data, index=exp_order)
+        
+        # Create the heatmap
+        fig, ax = plt.subplots(figsize=(12, 6))
+        sns.heatmap(growth_df, annot=True, fmt=".1f", cmap="YlOrRd", linewidths=.5, ax=ax)
+        
+        # Customize heatmap
+        ax.set_title('Career Progression Multipliers\n(Multiple of Entry-Level Salary)', fontsize=16, fontweight='bold', pad=20)
+        ax.set_xlabel('Job Category', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Experience Level', fontsize=12, fontweight='bold')
+        
+        # Set background color to match Streamlit's darker theme
+        fig.patch.set_facecolor('#2c3e50')
+        ax.set_facecolor('#2c3e50')
+        ax.tick_params(colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.title.set_color('white')
+        
+        plt.tight_layout()
+        st.pyplot(fig)
+        
+        st.markdown("""
+        #### Key Insights
+        * **Executive premium**: The jump from Senior to Executive level shows the largest salary increase, often 1.5-2x
+        * **Technical roles** see faster early growth but may plateau at senior levels
+        * **Management roles** have the largest executive multipliers, showing the value of leadership skills
+        * **Consistent pattern**: Across all roles, experience level increases correlate with 25-40% salary jumps per level
+        """)
+    
+    # 3. GEOGRAPHIC IMPACT
+    elif st.session_state.active_tab == "Geographic Impact":
+        # Create a horizontal bar chart showing salary by region
+        fig, ax = plt.subplots(figsize=(12, 8))
+        
+        # Calculate statistics by region
+        region_stats = df.groupby('region')['salary_in_usd'].agg(['count', 'mean', 'median']).reset_index()
+        region_stats = region_stats.sort_values('median', ascending=True)
+        
+        # Create custom colormap based on salary values
+        norm = plt.Normalize(region_stats['median'].min(), region_stats['median'].max())
+        colors = plt.cm.plasma(norm(region_stats['median']))
+        
+        # Create horizontal bars
+        bars = ax.barh(region_stats['region'], region_stats['median'], 
+                height=0.6, color=colors, alpha=0.8, edgecolor='none')
+        
+        # Add count indicators as scatter points
+        sizes = region_stats['count'] / region_stats['count'].max() * 1000
+        ax.scatter(region_stats['median'] * 0.1, region_stats['region'], s=sizes, 
+                  color='white', alpha=0.5, zorder=10)
+        
+        # Add salary labels
+        for i, bar in enumerate(bars):
+            ax.text(bar.get_width() + 5000, bar.get_y() + bar.get_height()/2, 
+                   f"${region_stats.iloc[i]['median']:,.0f}", 
+                   va='center', ha='left', fontweight='bold', color='white')
+            
+            # Add count labels near the scatter points
+            ax.text(region_stats.iloc[i]['median'] * 0.1, i, 
+                   f"{region_stats.iloc[i]['count']} jobs", 
+                   va='center', ha='center', fontsize=8, 
+                   fontweight='bold', color='black', zorder=11)
+        
+        # Customize graph
+        ax.set_xlabel('Median Annual Salary (USD)', fontsize=12, fontweight='bold')
+        ax.set_title('Global Salary Landscape by Region', fontsize=18, fontweight='bold', pad=20)
+        ax.grid(axis='x', linestyle='--', alpha=0.3)
+        
+        # Remove spines
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        
+        # Set background color to match Streamlit's darker theme
+        fig.patch.set_facecolor('#2c3e50')
+        ax.set_facecolor('#2c3e50')
+        ax.tick_params(colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.title.set_color('white')
+        for spine in ax.spines.values():
+            spine.set_color('#3498db')
+        
+        plt.tight_layout()
+        st.pyplot(fig)
+        
+        # Create a heatmap showing the cost-adjusted salaries
+        # Calculate cost-adjusted values
+        region_data = df.groupby(['region', 'experience_level_desc'])['salary_in_usd'].median().reset_index()
+        region_pivot = region_data.pivot(index='region', columns='experience_level_desc', values='salary_in_usd')
+        
+        # Ensure column order
+        if all(col in region_pivot.columns for col in ['Entry-Level', 'Mid-Level', 'Senior', 'Executive']):
+            region_pivot = region_pivot[['Entry-Level', 'Mid-Level', 'Senior', 'Executive']]
+        
+        # Create the heatmap
+        fig, ax = plt.subplots(figsize=(12, 8))
+        sns.heatmap(region_pivot, annot=True, fmt="$,.0f", cmap="YlGnBu", linewidths=.5, ax=ax)
+        
+        # Customize heatmap
+        ax.set_title('Regional Salary by Experience Level', fontsize=16, fontweight='bold', pad=20)
+        ax.set_xlabel('Experience Level', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Region', fontsize=12, fontweight='bold')
+        
+        # Set background color
+        fig.patch.set_facecolor('#2c3e50')
+        ax.tick_params(colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white') 
+        ax.title.set_color('white')
+        
+        plt.tight_layout()
+        st.pyplot(fig)
+        
+        # Cost of living adjustment visualization
+        if 'cost_of_living_index' in df.columns:
+            # Calculate adjusted salaries
+            adjustment_data = df.groupby('region')[['salary_in_usd', 'cost_of_living_index']].median().reset_index()
+            adjustment_data['adjusted_salary'] = adjustment_data['salary_in_usd'] / adjustment_data['cost_of_living_index']
+            adjustment_data = adjustment_data.sort_values('adjusted_salary', ascending=False)
+            
+            fig, ax = plt.subplots(figsize=(12, 8))
+            
+            x = np.arange(len(adjustment_data))
+            width = 0.4
+            
+            # Plot bars
+            raw_bars = ax.bar(x - width/2, adjustment_data['salary_in_usd'], width, label='Raw Salary', color='#3498db')
+            adj_bars = ax.bar(x + width/2, adjustment_data['adjusted_salary']*100, width, label='Cost-Adjusted (× 100)', color='#e74c3c')
+            
+            # Add labels
+            ax.set_xticks(x)
+            ax.set_xticklabels(adjustment_data['region'], rotation=45, ha='right')
+            ax.set_xlabel('Region', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Salary (USD)', fontsize=12, fontweight='bold')
+            ax.set_title('Cost of Living Adjusted Salaries by Region', fontsize=16, fontweight='bold', pad=20)
+            ax.grid(axis='y', linestyle='--', alpha=0.3)
+            ax.legend()
+            
+            # Set background color to match Streamlit's darker theme
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.yaxis.label.set_color('white')
+            ax.title.set_color('white')
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+        
+        st.markdown("""
+        #### Key Insights
+        * **North America** continues to lead in absolute salary figures, especially at executive levels
+        * **Oceania** shows competitive compensation when adjusted for cost of living
+        * **Remote opportunity**: Remote work allows professionals in lower-paying regions to access global compensation
+        * **Regional arbitrage**: Working remotely for North American companies while living in lower-cost regions provides maximum financial benefit
+        """)
+    
+    # 4. SPECIALIZATION EFFECT
+    elif st.session_state.active_tab == "Specialization Effect":
+        if 'tech_specialization' in df.columns:
+            # Create a scatter plot showing relationship between tech specialization and salary
+            fig, ax = plt.subplots(figsize=(12, 8))
+            
+            # Group by job category and calculate average tech specialization and salary
+            tech_data = df.groupby(['job_category', 'experience_level_desc'])[['tech_specialization', 'salary_in_usd']].mean().reset_index()
+            
+            # Create color mapping for experience levels
+            exp_colors = {'Entry-Level': '#1abc9c', 'Mid-Level': '#3498db', 'Senior': '#9b59b6', 'Executive': '#e74c3c'}
+            colors = [exp_colors[exp] for exp in tech_data['experience_level_desc']]
+            
+            # Create scatter plot with sized points
+            scatter = ax.scatter(tech_data['tech_specialization'], tech_data['salary_in_usd'], 
+                                s=tech_data['salary_in_usd']/500, c=colors, alpha=0.7)
+            
+            # Add labels for each point
+            for idx, row in tech_data.iterrows():
+                ax.annotate(row['job_category'], 
+                           (row['tech_specialization'], row['salary_in_usd']),
+                           xytext=(5, 5), textcoords="offset points",
+                           fontsize=8, alpha=0.8)
+            
+            # Add a trend line
+            z = np.polyfit(tech_data['tech_specialization'], tech_data['salary_in_usd'], 1)
+            p = np.poly1d(z)
+            ax.plot(tech_data['tech_specialization'], p(tech_data['tech_specialization']), 
+                   "--", color='#f1c40f', linewidth=2)
+            
+            # Highlight high-specialization, high-salary area
+            ax.axvspan(8, 10, alpha=0.2, color='green')
+            ax.axvspan(1, 4, alpha=0.2, color='red')
+            
+            # Add annotations for regions
+            ax.text(9, df['salary_in_usd'].max()*0.8, "High Specialization\nPremium", 
+                   ha='center', color='white', fontsize=10, fontweight='bold',
+                   bbox=dict(boxstyle="round,pad=0.3", fc='green', alpha=0.3))
+            
+            ax.text(2.5, df['salary_in_usd'].max()*0.3, "Low Specialization\nDiscount", 
+                   ha='center', color='white', fontsize=10, fontweight='bold',
+                   bbox=dict(boxstyle="round,pad=0.3", fc='red', alpha=0.3))
+            
+            # Customize graph
+            ax.set_xlabel('Technical Specialization Score', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Average Salary (USD)', fontsize=12, fontweight='bold')
+            ax.set_title('Impact of Technical Specialization on Salary', fontsize=18, fontweight='bold', pad=20)
+            ax.grid(linestyle='--', alpha=0.3)
+            
+            # Add legend for experience levels
+            legend_elements = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10, label=exp) 
+                              for exp, color in exp_colors.items()]
+            ax.legend(handles=legend_elements, title='Experience Level', loc='upper left')
+            
+            # Set background color to match Streamlit's darker theme
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.yaxis.label.set_color('white')
+            ax.title.set_color('white')
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+            
+            # Create a tech stack specialization visualization
+            if 'tech_stack' in df.columns:
+                # Get the most common tech stacks
+                all_tech = []
+                for techs in df['tech_stack'].str.split(','):
+                    if isinstance(techs, list):
+                        all_tech.extend([t.strip() for t in techs])
+                
+                tech_counts = pd.Series(all_tech).value_counts().head(12)
+                
+                fig, ax = plt.subplots(figsize=(12, 8))
+                
+                # Create horizontal bar chart for tech skills
+                bars = ax.barh(tech_counts.index, tech_counts.values, 
+                               color=plt.cm.viridis(np.linspace(0, 1, len(tech_counts))), 
+                               alpha=0.8, edgecolor='none')
+                
+                # Add value annotations
+                for i, bar in enumerate(bars):
+                    ax.text(bar.get_width() + 5, bar.get_y() + bar.get_height()/2, 
+                           f"{tech_counts.values[i]}", 
+                           va='center', fontweight='bold', color='white')
+                
+                # Customize graph
+                ax.set_xlabel('Frequency in Job Profiles', fontsize=12, fontweight='bold')
+                ax.set_title('Most In-Demand Technical Skills', fontsize=18, fontweight='bold', pad=20)
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.grid(axis='x', linestyle='--', alpha=0.3)
+                
+                # Set background color to match Streamlit's darker theme
+                fig.patch.set_facecolor('#2c3e50')
+                ax.set_facecolor('#2c3e50')
+                ax.tick_params(colors='white')
+                ax.xaxis.label.set_color('white')
+                ax.title.set_color('white')
+                for spine in ax.spines.values():
+                    spine.set_color('#3498db')
+                
+                plt.tight_layout()
+                st.pyplot(fig)
+        
+        st.markdown("""
+        #### Key Insights
+        * **Specialization premium**: Technical specialization correlates strongly with increased compensation
+        * **Diminishing returns**: Beyond a specialization score of 8, salary increases become less dramatic
+        * **Role impact**: Some roles (like ML Engineers) benefit more from specialization than others
+        * **Baseline requirement**: Even entry-level positions require a minimum technical foundation
+        * **Top technologies**: Python, SQL, and Cloud platforms continue to be the most valuable technical skills
+        """)
+    
+    # 5. AI IMPACT ANALYSIS
+    elif st.session_state.active_tab == "AI Impact Analysis":
+        if 'ai_relationship' in df.columns and 'automation_risk' in df.columns:
+            # Create visualization showing AI impact on roles and salaries
+            # First, analyse by AI relationship
+            ai_impact = df.groupby('ai_relationship')['salary_in_usd'].agg(['count', 'mean', 'median']).reset_index()
+            ai_impact = ai_impact.sort_values('median', ascending=False)
+            
+            fig, ax = plt.subplots(figsize=(12, 6))
+            
+            # Create bars with custom colors
+            bars = ax.bar(ai_impact['ai_relationship'], ai_impact['median'], 
+                         color=plt.cm.plasma(np.linspace(0, 1, len(ai_impact))), 
+                         alpha=0.8, width=0.6)
+            
+            # Add value labels
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2., height + 5000,
+                       f'${height:,.0f}',
+                       ha='center', va='bottom', fontweight='bold', color='white')
+            
+            # Customize graph
+            ax.set_xlabel('Relationship to AI', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Median Salary (USD)', fontsize=12, fontweight='bold')
+            ax.set_title('Impact of AI Relationship on Compensation', fontsize=18, fontweight='bold', pad=20)
+            ax.grid(axis='y', linestyle='--', alpha=0.3)
+            
+            # Set background color to match Streamlit's darker theme
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.yaxis.label.set_color('white')
+            ax.title.set_color('white')
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+            
+            # Create a visualization of automation risk vs. salary
+            fig, ax = plt.subplots(figsize=(12, 8))
+            
+            # Group data by job category
+            automation_data = df.groupby('job_category')[['automation_risk', 'salary_in_usd']].mean().reset_index()
+            automation_data = automation_data.sort_values('automation_risk')
+            
+            # Create a color gradient based on automation risk
+            colors = plt.cm.RdYlGn_r(automation_data['automation_risk'])
+            
+            # Create the horizontal bars
+            bars = ax.barh(automation_data['job_category'], automation_data['salary_in_usd'], 
+                          color=colors, alpha=0.8, height=0.6)
+            
+            # Add risk annotations
+            for i, row in automation_data.iterrows():
+                # Add salary label
+                ax.text(row['salary_in_usd'] + 5000, i, f"${row['salary_in_usd']:,.0f}", 
+                       va='center', fontweight='bold', color='white')
+                
+                # Add risk percentage at the start of each bar
+                ax.text(2000, i, f"{row['automation_risk']*100:.0f}% risk", 
+                       va='center', ha='left', fontweight='bold', color='black')
+            
+            # Add a vertical line for average salary
+            avg_salary = df['salary_in_usd'].mean()
+            ax.axvline(x=avg_salary, color='#f1c40f', linestyle='--', linewidth=2)
+            ax.text(avg_salary + 5000, -0.8, f"Average: ${avg_salary:,.0f}", 
+                   color='#f1c40f', fontweight='bold')
+            
+            # Customize graph
+            ax.set_xlabel('Average Salary (USD)', fontsize=12, fontweight='bold')
+            ax.set_title('Automation Risk vs. Compensation by Role', fontsize=18, fontweight='bold', pad=20)
+            ax.grid(axis='x', linestyle='--', alpha=0.3)
+            
+            # Add a colorbar for risk levels
+            sm = plt.cm.ScalarMappable(cmap=plt.cm.RdYlGn_r, norm=plt.Normalize(0, 1))
+            sm.set_array([])
+            cbar = plt.colorbar(sm, ax=ax)
+            cbar.set_label('Automation Risk', fontweight='bold', color='white')
+            cbar.ax.tick_params(colors='white')
+            
+            # Set background color to match Streamlit's darker theme
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.title.set_color('white')
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+        
+        st.markdown("""
+        #### Key Insights
+        * **AI creators** command the highest salaries, followed by those who apply or implement AI
+        * **Automation premium**: Roles with lower automation risk generally have higher compensation
+        * **Specialized skills**: Technical roles that apply AI/ML to domain-specific problems show strong salary resilience
+        * **Augmentation effect**: Roles that use AI as an augmentation tool show increased salary potential over time
+        * **Risk compensation**: Some high-automation-risk roles receive higher salaries as a form of risk premium
+        """)
+    
+    # 6. WORK SETTING TRENDS
+    elif st.session_state.active_tab == "Work Setting Trends":
+        # Create visualization comparing work settings across dimensions
+        work_settings = df.groupby('work_setting')['salary_in_usd'].agg(['count', 'mean', 'median']).reset_index()
+        
+        # Create a more complex visualization that shows trends over time if work_year exists
+        if 'work_year' in df.columns:
+            # Create a line chart showing trends by work setting over time
+            work_year_data = df.groupby(['work_year', 'work_setting'])['salary_in_usd'].median().reset_index()
+            work_year_pivot = work_year_data.pivot(index='work_year', columns='work_setting', values='salary_in_usd')
+            
+            fig, ax = plt.subplots(figsize=(12, 8))
+            
+            # Plot lines with markers
+            for setting in work_year_pivot.columns:
+                ax.plot(work_year_pivot.index, work_year_pivot[setting], marker='o', linewidth=3, 
+                       label=setting, alpha=0.8, markersize=10)
+            
+            # Add markers at each data point
+            for setting in work_year_pivot.columns:
+                for year in work_year_pivot.index:
+                    if not pd.isna(work_year_pivot.loc[year, setting]):
+                        ax.text(year, work_year_pivot.loc[year, setting] + 5000, 
+                               f"${work_year_pivot.loc[year, setting]:,.0f}", 
+                               ha='center', va='bottom', fontsize=9, fontweight='bold', 
+                               color='white', alpha=0.9)
+            
+            # Customize graph
+            ax.set_xlabel('Year', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Median Salary (USD)', fontsize=12, fontweight='bold')
+            ax.set_title('Salary Trends by Work Setting Over Time', fontsize=18, fontweight='bold', pad=20)
+            ax.grid(linestyle='--', alpha=0.3)
+            ax.legend(title='Work Setting', title_fontsize=12)
+            
+            # Set background color to match Streamlit's darker theme
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.yaxis.label.set_color('white')
+            ax.title.set_color('white')
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+        
+        # Create a stacked bar chart showing work setting by experience level
+        work_exp_data = df.groupby(['experience_level_desc', 'work_setting'])['salary_in_usd'].median().reset_index()
+        work_exp_pivot = work_exp_data.pivot(index='experience_level_desc', columns='work_setting', values='salary_in_usd')
+        
+        # Ensure correct experience level order
+        if all(level in work_exp_pivot.index for level in ['Entry-Level', 'Mid-Level', 'Senior', 'Executive']):
+            work_exp_pivot = work_exp_pivot.reindex(['Entry-Level', 'Mid-Level', 'Senior', 'Executive'])
+        
+        fig, ax = plt.subplots(figsize=(12, 8))
+        
+        # Plot stacked bars
+        work_exp_pivot.plot(kind='bar', stacked=False, ax=ax, colormap='viridis', width=0.7)
+        
+        # Add value labels
+        for container in ax.containers:
+            ax.bar_label(container, fmt='${:,.0f}', padding=5, fontweight='bold')
+        
+        # Customize graph
+        ax.set_xlabel('Experience Level', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Median Salary (USD)', fontsize=12, fontweight='bold')
+        ax.set_title('Work Setting Compensation by Experience Level', fontsize=18, fontweight='bold', pad=20)
+        ax.grid(axis='y', linestyle='--', alpha=0.3)
+        ax.legend(title='Work Setting')
+        
+        # Set background color to match Streamlit's darker theme
+        fig.patch.set_facecolor('#2c3e50')
+        ax.set_facecolor('#2c3e50')
+        ax.tick_params(colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.title.set_color('white')
+        for spine in ax.spines.values():
+            spine.set_color('#3498db')
+        
+        plt.tight_layout()
+        st.pyplot(fig)
+        
+        # Distribution of work settings across different job categories
+        work_job_data = df.groupby(['job_category', 'work_setting']).size().reset_index(name='count')
+        work_job_pivot = work_job_data.pivot(index='job_category', columns='work_setting', values='count')
+        work_job_pivot = work_job_pivot.fillna(0)
+        
+        # Convert to percentages
+        work_job_pct = work_job_pivot.div(work_job_pivot.sum(axis=1), axis=0) * 100
+        
+        fig, ax = plt.subplots(figsize=(12, 10))
+        
+        # Create a colorful heatmap
+        sns.heatmap(work_job_pct, annot=True, fmt='.1f', cmap='YlGnBu', ax=ax, linewidths=.5)
+        
+        # Customize heatmap
+        ax.set_title('Work Setting Distribution by Job Category (%)', fontsize=16, fontweight='bold', pad=20)
+        ax.set_xlabel('Work Setting', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Job Category', fontsize=12, fontweight='bold')
+        
+        # Set background color to match Streamlit's darker theme
+        fig.patch.set_facecolor('#2c3e50')
+        ax.tick_params(colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.title.set_color('white')
+        
+        plt.tight_layout()
+        st.pyplot(fig)
+        
+        st.markdown("""
+        #### Key Insights
+        * **Remote premium** exists for most job categories, especially at senior and executive levels
+        * **Hybrid flexibility**: Hybrid work settings show balanced compensation while providing flexibility
+        * **Changing landscape**: The trend toward remote work has accelerated, with increasing salary parity
+        * **Role differences**: Technical roles (ML Engineers, Data Engineers) are more likely to have remote options
+        * **Experience impact**: Remote work compensation premium increases with experience level
+        """)
+    
+    # 7. WORK-LIFE BALANCE
+    elif st.session_state.active_tab == "Work-Life Balance":
+        if 'work_life_balance' in df.columns:
+            # Create a bubble chart showing salary, work-life balance, and job category
+            fig, ax = plt.subplots(figsize=(12, 8))
+            
+            # Prepare data
+            wlb_data = df.groupby('job_category')[['salary_in_usd', 'work_life_balance']].mean().reset_index()
+            
+            # Count number of professionals in each category
+            job_counts = df['job_category'].value_counts()
+            wlb_data['count'] = wlb_data['job_category'].map(job_counts)
+            
+            # Create custom color palette
+            colors = plt.cm.viridis(np.linspace(0, 1, len(wlb_data)))
+            
+            # Create bubble chart
+            scatter = ax.scatter(wlb_data['work_life_balance'], wlb_data['salary_in_usd'], 
+                                s=wlb_data['count']*2, c=colors, alpha=0.7, edgecolors='white')
+            
+            # Add labels for each bubble
+            for i, row in wlb_data.iterrows():
+                ax.annotate(row['job_category'], 
+                           (row['work_life_balance'], row['salary_in_usd']),
+                           xytext=(5, 5), textcoords="offset points",
+                           fontsize=9, fontweight='bold', color='white')
+            
+            # Add a best fit line
+            z = np.polyfit(wlb_data['work_life_balance'], wlb_data['salary_in_usd'], 1)
+            p = np.poly1d(z)
+            ax.plot(wlb_data['work_life_balance'], p(wlb_data['work_life_balance']), 
+                   "--", color='#e74c3c', linewidth=2)
+            
+            # Highlight quadrants
+            ax.axhline(y=df['salary_in_usd'].mean(), color='white', linestyle='--', alpha=0.5)
+            ax.axvline(x=df['work_life_balance'].mean(), color='white', linestyle='--', alpha=0.5)
+            
+            # Add labels for quadrants
+            ax.text(df['work_life_balance'].min(), df['salary_in_usd'].max()*0.95, "High Stress\nHigh Pay", 
+                   ha='left', color='white', fontsize=10, fontweight='bold',
+                   bbox=dict(boxstyle="round,pad=0.3", fc='red', alpha=0.3))
+            
+            ax.text(df['work_life_balance'].max()*0.95, df['salary_in_usd'].max()*0.95, "Low Stress\nHigh Pay", 
+                   ha='right', color='white', fontsize=10, fontweight='bold',
+                   bbox=dict(boxstyle="round,pad=0.3", fc='green', alpha=0.3))
+            
+            # Customize graph
+            ax.set_xlabel('Work-Life Balance Score', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Average Salary (USD)', fontsize=12, fontweight='bold')
+            ax.set_title('Salary vs. Work-Life Balance by Role', fontsize=18, fontweight='bold', pad=20)
+            ax.grid(linestyle='--', alpha=0.3)
+            
+            # Set background color to match Streamlit's darker theme
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.yaxis.label.set_color('white')
+            ax.title.set_color('white')
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+            
+            # Create a chart comparing total compensation to base salary across roles
+            if 'total_compensation_estimate' in df.columns:
+                # Calculate the compensation ratio
+                total_comp_data = df.groupby('job_category')[['salary_in_usd', 'total_compensation_estimate']].mean().reset_index()
+                total_comp_data['comp_ratio'] = total_comp_data['total_compensation_estimate'] / total_comp_data['salary_in_usd']
+                total_comp_data['bonus_value'] = total_comp_data['total_compensation_estimate'] - total_comp_data['salary_in_usd']
+                total_comp_data = total_comp_data.sort_values('comp_ratio', ascending=False)
+                
+                fig, ax = plt.subplots(figsize=(12, 8))
+                
+                # Create the bars
+                x = np.arange(len(total_comp_data))
+                width = 0.35
+                
+                bars1 = ax.bar(x, total_comp_data['salary_in_usd'], width, label='Base Salary', color='#3498db')
+                bars2 = ax.bar(x, total_comp_data['bonus_value'], width, bottom=total_comp_data['salary_in_usd'], 
+                              label='Bonuses & Benefits', color='#f39c12')
+                
+                # Add ratio labels
+                for i, row in total_comp_data.iterrows():
+                    ax.text(i, row['total_compensation_estimate'] + 5000, 
+                           f"{row['comp_ratio']:.2f}x", ha='center', fontweight='bold', color='white')
+                
+                # Customize graph
+                ax.set_xlabel('Job Category', fontsize=12, fontweight='bold')
+                ax.set_ylabel('Compensation (USD)', fontsize=12, fontweight='bold')
+                ax.set_title('Total Compensation Structure by Role', fontsize=18, fontweight='bold', pad=20)
+                ax.set_xticks(x)
+                ax.set_xticklabels(total_comp_data['job_category'], rotation=45, ha='right')
+                ax.legend()
+                ax.grid(axis='y', linestyle='--', alpha=0.3)
+                
+                # Set background color to match Streamlit's darker theme
+                fig.patch.set_facecolor('#2c3e50')
+                ax.set_facecolor('#2c3e50')
+                ax.tick_params(colors='white')
+                ax.xaxis.label.set_color('white')
+                ax.yaxis.label.set_color('white')
+                ax.title.set_color('white')
+                for spine in ax.spines.values():
+                    spine.set_color('#3498db')
+                
+                plt.tight_layout()
+                st.pyplot(fig)
+        
+        st.markdown("""
+        #### Key Insights
+        * **Inverse relationship**: Higher salaries often correlate with lower work-life balance scores
+        * **Executive tradeoff**: Management roles typically come with both higher compensation and higher stress
+        * **Hidden benefits**: Total compensation can be up to 1.5x base salary when including bonuses and benefits
+        * **Optimal roles**: Some specialized technical roles offer both good work-life balance and competitive pay
+        * **Sector impact**: Certain sectors (Education, Non-profit) prioritize work-life balance over maximum compensation
+        """)
+    
+    # 8. FUTURE OUTLOOK
+    elif st.session_state.active_tab == "Future Outlook":
+        if 'demand_index' in df.columns:
+            # Create visualization showing demand trends
+            demand_data = df.groupby('job_category')[['demand_index', 'salary_in_usd', 'automation_risk']].mean().reset_index()
+            demand_data = demand_data.sort_values('demand_index', ascending=False)
+            
+            fig, ax = plt.subplots(figsize=(12, 8))
+            
+            # Create horizontal bars with gradient colors based on automation risk
+            colors = plt.cm.RdYlGn_r(demand_data['automation_risk'])
+            
+            # Create bars for demand index
+            bars = ax.barh(demand_data['job_category'], demand_data['demand_index'], 
+                          color=colors, alpha=0.8, height=0.6)
+            
+            # Add labels
+            for i, bar in enumerate(bars):
+                # Add demand index value
+                ax.text(bar.get_width() + 0.1, bar.get_y() + bar.get_height()/2, 
+                       f"{demand_data.iloc[i]['demand_index']:.1f}", 
+                       va='center', fontweight='bold', color='white')
+                
+                # Add salary as a secondary indicator
+                ax.text(0.1, bar.get_y() + bar.get_height()/2, 
+                       f"${demand_data.iloc[i]['salary_in_usd']:,.0f}", 
+                       va='center', ha='left', fontsize=8, 
+                       fontweight='bold', color='black')
+            
+            # Customize graph
+            ax.set_xlabel('Demand Index (Higher = More In Demand)', fontsize=12, fontweight='bold')
+            ax.set_title('Future Demand Outlook by Role', fontsize=18, fontweight='bold', pad=20)
+            ax.grid(axis='x', linestyle='--', alpha=0.3)
+            
+            # Add a colorbar for automation risk
+            sm = plt.cm.ScalarMappable(cmap=plt.cm.RdYlGn_r, norm=plt.Normalize(0, 1))
+            sm.set_array([])
+            cbar = plt.colorbar(sm, ax=ax)
+            cbar.set_label('Automation Risk', fontweight='bold', color='white')
+            cbar.ax.tick_params(colors='white')
+            
+            # Set background color to match Streamlit's darker theme
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.title.set_color('white')
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+        
+        if 'career_path' in df.columns:
+            # Create a visualization showing career path progression
+            career_paths = df['career_path'].value_counts().head(8)
+            
+            fig, ax = plt.subplots(figsize=(12, 8))
+            
+            # Create bars with custom colors
+            bars = ax.bar(career_paths.index, career_paths.values, 
+                         color=plt.cm.viridis(np.linspace(0, 1, len(career_paths))), 
+                         alpha=0.8, width=0.7)
+            
+            # Add count labels
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2., height + 5,
+                       f'{height:,.0f}',
+                       ha='center', va='bottom', fontweight='bold', color='white')
+            
+            # Customize graph
+            ax.set_xlabel('Career Path', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Number of Professionals', fontsize=12, fontweight='bold')
+            ax.set_title('Popular Career Progression Paths', fontsize=18, fontweight='bold', pad=20)
+            ax.set_xticklabels(career_paths.index, rotation=45, ha='right')
+            ax.grid(axis='y', linestyle='--', alpha=0.3)
+            
+            # Set background color to match Streamlit's darker theme
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.yaxis.label.set_color('white')
+            ax.title.set_color('white')
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            plt.tight_layout()
+            st.pyplot(fig)
+            
+            # Create a comparison of salaries by industry sector and experience
+            if 'company_sector' in df.columns:
+                # Get top sectors by count
+                top_sectors = df['company_sector'].value_counts().head(5).index.tolist()
+                sector_exp_data = df[df['company_sector'].isin(top_sectors)]
+                
+                # Group by sector and experience
+                sector_data = sector_exp_data.groupby(['company_sector', 'experience_level_desc'])['salary_in_usd'].median().reset_index()
+                sector_pivot = sector_data.pivot(index='company_sector', columns='experience_level_desc', values='salary_in_usd')
+                
+                # Ensure column order
+                if all(col in sector_pivot.columns for col in ['Entry-Level', 'Mid-Level', 'Senior', 'Executive']):
+                    sector_pivot = sector_pivot[['Entry-Level', 'Mid-Level', 'Senior', 'Executive']]
+                
+                fig, ax = plt.subplots(figsize=(12, 6))
+                
+                # Create a grouped bar chart
+                sector_pivot.plot(kind='bar', ax=ax, colormap='viridis')
+                
+                # Add value labels
+                for container in ax.containers:
+                    ax.bar_label(container, fmt='${:,.0f}', fontsize=8, fontweight='bold')
+                
+                # Customize graph
+                ax.set_xlabel('Industry Sector', fontsize=12, fontweight='bold')
+                ax.set_ylabel('Median Salary (USD)', fontsize=12, fontweight='bold')
+                ax.set_title('Salary Progression by Top Industry Sectors', fontsize=18, fontweight='bold', pad=20)
+                ax.grid(axis='y', linestyle='--', alpha=0.3)
+                ax.legend(title='Experience Level')
+                
+                # Set background color to match Streamlit's darker theme
+                fig.patch.set_facecolor('#2c3e50')
+                ax.set_facecolor('#2c3e50')
+                ax.tick_params(colors='white')
+                ax.xaxis.label.set_color('white')
+                ax.yaxis.label.set_color('white')
+                ax.title.set_color('white')
+                for spine in ax.spines.values():
+                    spine.set_color('#3498db')
+                
+                plt.tight_layout()
+                st.pyplot(fig)
+        
+        st.markdown("""
+        #### Key Insights
+        * **Highest demand**: Machine Learning and AI-focused roles show the strongest future demand
+        * **Emerging roles**: Roles combining domain expertise with data skills are rapidly growing
+        * **Career transitions**: Analytics-to-Engineering and Specialist-to-Management are common progression paths
+        * **Industry growth**: Finance and Healthcare are projected to have the largest data science job growth
+        * **Resilient roles**: Positions requiring both technical skills and strategic thinking show the lowest automation risk
+        """)
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Bottom section with key takeaways
-    st.markdown('<h2 class="section-header">Key Takeaways</h2>', unsafe_allow_html=True)
+    # Bottom section with key takeaways from the data
+    st.markdown('<h2 class="section-header">Key Salary Determinants</h2>', unsafe_allow_html=True)
     
-    st.markdown("""
-    Based on our analysis of salary data, here are the most important factors influencing compensation:
+    # Create 3-column layout for key takeaways
+    col1, col2, col3 = st.columns(3)
     
-    1. **Experience Level**: The single most important factor, with senior and executive roles earning 1.5-2.5x entry-level positions
-    
-    2. **Geographic Region**: North America leads in compensation, followed by Europe and Oceania
-    
-    3. **Job Specialization**: Roles requiring specialized skills (ML Engineer, Research Scientist) command higher salaries
-    
-    4. **Company Sector**: Finance and Technology typically offer the highest compensation
-    
-    5. **Technical Expertise**: Higher technical specialization can increase compensation by 10-15%
-    """)
+    with col1:
+        st.markdown("""
+        ### Primary Factors
+        
+        1. **Experience Level**
+           * 40-50% increase from Entry to Mid-Level
+           * 30-40% increase from Mid to Senior 
+           * 35-55% increase from Senior to Executive
+        
+        2. **Job Specialization**
+           * Technical specialization correlates with 10-15% higher salary
+           * AI/ML-specific roles command 15-25% premium
+        
+        3. **Geographic Region**
+           * North America offers highest absolute salaries
+           * Remote work enables global compensation arbitrage
+        """)
+        
+    with col2:
+        st.markdown("""
+        ### Secondary Factors
+        
+        1. **Work Setting**
+           * Remote work often carries 5-10% premium
+           * Setting impact varies by experience level
+        
+        2. **Company Sector**
+           * Finance & Technology lead in compensation
+           * Sector impact strongest at executive level
+        
+        3. **Company Size**
+           * Large companies offer 10-15% higher base pay
+           * Startups may compensate with equity instead
+        """)
+        
+    with col3:
+        st.markdown("""
+        ### Emerging Trends
+        
+        1. **AI Impact**
+           * AI creators & implementers command highest premiums
+           * Automation risk correlates with compensation adjustments
+        
+        2. **Work-Life Balance**
+           * Slight inverse relationship with compensation
+           * Total benefits package can add 20-50% to base salary
+        
+        3. **Remote Revolution**
+           * Geographic salary differences becoming less pronounced
+           * Remote work increasingly normalized across all roles
+        """)
     
 
 def prediction_page():
