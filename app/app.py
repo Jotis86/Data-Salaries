@@ -108,13 +108,10 @@ def load_model():
     # Try each path
     for path in possible_paths:
         try:
-            st.write(f"Trying to load from: {path}")  # Debug info - remove in production
             with open(path, 'rb') as file:
                 model = pickle.load(file)
-            st.success(f"Successfully loaded model from {path}")  # Debug info - remove in production
             return model
-        except Exception as e:
-            st.write(f"Failed loading from {path}: {str(e)}")  # Debug info - remove in production
+        except Exception:
             continue
     
     # If we get here, all attempts failed
