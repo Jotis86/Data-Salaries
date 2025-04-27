@@ -1692,6 +1692,12 @@ def prediction_page():
     """)
     st.markdown('</div>', unsafe_allow_html=True)
     
+    # Initialize session state variables
+    if "results_ready" not in st.session_state:
+        st.session_state.results_ready = False
+    if "calculation_complete" not in st.session_state:
+        st.session_state.calculation_complete = False
+    
     # Create a tab-based interface for better organization
     tab1, tab2 = st.tabs(["📝 Input Your Details", "💰 View Results"])
     
@@ -1776,16 +1782,9 @@ def prediction_page():
         predict_button = st.button("Calculate My Salary Estimate", type="primary", key="predict_salary", use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
-        # Show success message in the same tab after calculation
-        if "calculation_complete" in st.session_state and st.session_state.calculation_complete:
-            st.success("✅ Your salary has been calculated successfully! Click on the 'View Results' tab to see your personalized salary prediction.")
-    
-    # Results tab
-    with tab2:
-        if "results_ready" not in st.session_state:
-            st.session_state.results_ready = False
-        
+        # Process the calculation when the button is clicked
         if predict_button:
+            # Show spinner in this tab
             with st.spinner("Analyzing your profile..."):
                 try:
                     # Prepare data for the model
@@ -1832,9 +1831,18 @@ def prediction_page():
                     st.session_state.tech_specialization = tech_specialization
                     st.session_state.english_level = english_level
                     
+                    # Display success message immediately
+                    st.success("✅ Your salary has been calculated successfully! Click on the 'View Results' tab to see your personalized salary prediction.")
+                    
                 except Exception as e:
                     st.error(f"Error making prediction: {e}")
         
+        # Show success message if calculation was previously completed
+        elif st.session_state.calculation_complete:
+            st.success("✅ Your salary has been calculated successfully! Click on the 'View Results' tab to see your personalized salary prediction.")
+    
+    # Results tab
+    with tab2:
         # Display results if ready
         if st.session_state.results_ready:
             base_predicted_salary = st.session_state.base_salary
@@ -1920,6 +1928,7 @@ def prediction_page():
                 )
             st.markdown('</div>', unsafe_allow_html=True)
             
+            # Rest of the code remains the same...
             # Two visualizations side by side
             st.markdown('<h3 class="subsection-header">Career Analytics</h3>', unsafe_allow_html=True)
             vis_col1, vis_col2 = st.columns(2)
