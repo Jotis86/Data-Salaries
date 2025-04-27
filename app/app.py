@@ -5,8 +5,8 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 import seaborn as sns
-from PIL import Image
 import os
+from PIL import Image
 
 # Configuración de la página
 st.set_page_config(
@@ -15,11 +15,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# Función para cargar el modelo con diagnóstico mejorado
+# Función para cargar el modelo
 @st.cache_resource
 def load_model():
     try:
-        model_path = 'improved_salary_prediction_model.pkl'
+        model_path = 'simple_salary_model.pkl'
         if not os.path.exists(model_path):
             st.error(f"Archivo de modelo no encontrado en: {os.path.abspath(model_path)}")
             return None
@@ -27,22 +27,56 @@ def load_model():
         with open(model_path, 'rb') as file:
             model = pickle.load(file)
             
-        # Verificar si es un pipeline completo
+        # Verificar si es un pipeline
         if hasattr(model, 'steps'):
             steps = [step[0] for step in model.steps]
-            st.write(f"Modelo cargado correctamente. Pasos del pipeline: {steps}")
+            st.write(f"Modelo cargado correctamente. Pasos: {steps}")
         else:
-            st.warning("El modelo cargado no parece ser un pipeline completo. Puede que falte el preprocesamiento.")
+            st.warning("El modelo cargado no parece ser un pipeline completo.")
         
         return model
     except Exception as e:
         st.error(f"Error al cargar el modelo: {e}")
         return None
 
-# Función para crear un modelo simulado si el real falla
+# Función para validar que el modelo responde a cambios en experiencia
+def test_model_sensitivity(model):
+    try:
+        test_inputs = {
+            'job_category': ['Data Scientist'] * 4,
+            'experience_level_desc': ['Entry-Level', 'Mid-Level', 'Senior', 'Executive'],
+            'region': ['North America'] * 4,
+            'work_setting': ['Remote'] * 4,
+            'company_sector': ['Technology'] * 4
+        }
+        test_df = pd.DataFrame(test_inputs)
+        
+        predictions = model.predict(test_df)
+        
+        # Crear DataFrame para mostrar
+        results_df = pd.DataFrame({
+            'Nivel de Experiencia': test_inputs['experience_level_desc'],
+            'Salario Predicho': [f"${p:,.2f}" for p in predictions]
+        })
+        
+        st.write("Prueba de Sensibilidad del Modelo:")
+        st.dataframe(results_df)
+        
+        # Calcular variación
+        variation = (max(predictions) - min(predictions)) / np.mean(predictions)
+        if variation > 0.3:  # Al menos 30% de variación
+            st.success(f"✅ Modelo sensible a nivel de experiencia (variación: {variation:.1%})")
+            return True
+        else:
+            st.error(f"❌ Baja sensibilidad a experiencia (variación: {variation:.1%})")
+            return False
+    except Exception as e:
+        st.error(f"Error en prueba de sensibilidad: {e}")
+        return False
+
+# Función para predicciones de respaldo (si el modelo falla)
 def get_simulated_prediction(
-    job_category, experience_level, region, company_sector, 
-    tech_specialization, work_setting
+    job_category, experience_level, region, work_setting, company_sector
 ):
     """Calcula un salario simulado basado en los principales factores"""
     
@@ -107,13 +141,10 @@ def get_simulated_prediction(
     sec_mult = sector_multiplier.get(company_sector, 1.0)
     work_mult = work_setting_multiplier.get(work_setting, 1.0)
     
-    # Ajuste por especialización técnica
-    tech_mult = 0.8 + (tech_specialization / 10 * 0.4)  # 0.8 a 1.2
-    
     # Calcular salario final
-    salary = base * exp_mult * reg_mult * sec_mult * tech_mult * work_mult
+    salary = base * exp_mult * reg_mult * sec_mult * work_mult
     
-    # Añadir un factor aleatorio de variabilidad (±5%)
+    # Añadir variabilidad (±5%)
     import random
     random_factor = random.uniform(0.95, 1.05)
     salary *= random_factor
@@ -127,24 +158,37 @@ model_loaded = model is not None
 # Título y descripción
 st.title("🧠 Predictor de Salarios en Data Science")
 st.markdown("""
-Esta aplicación predice salarios en el campo de Data Science basándose en diferentes factores.
-Complete los campos a continuación para obtener una predicción personalizada.
+Esta aplicación predice salarios en el sector de Data Science basándose en los principales 
+factores que influyen en la compensación. Complete los campos para obtener una estimación personalizada.
 """)
+
+# Verificar modelo
+if model_loaded:
+    if test_model_sensitivity(model):
+        use_simulation = False
+    else:
+        use_simulation = True
+        st.warning("⚠️ Utilizando sistema de predicción de respaldo (modelo basado en reglas)")
+else:
+    use_simulation = True
+    st.warning("⚠️ Modelo no disponible. Utilizando sistema de predicción de respaldo.")
 
 # Crear columnas principales
 col1, col2 = st.columns([1, 1])
 
 # Sección de entrada de datos (columna izquierda)
 with col1:
-    st.header("📋 Información del Perfil")
+    st.header("📋 Perfil Profesional")
     
-    # Información básica
+    # VARIABLES CLAVE PARA EL MODELO
+    st.subheader("Información Principal")
+    
     job_category = st.selectbox(
         "Categoría de Trabajo",
         options=[
-            "Data Scientist", "Senior Data Scientist", "ML Engineer", 
-            "Data Engineer", "Data Analyst", "Business Analyst",
-            "Research Scientist", "Data Science Manager", "AI Engineer"
+            "Data Scientist", "ML Engineer", "Data Engineer", 
+            "Data Analyst", "Business Analyst", "Research Scientist", 
+            "Data Science Manager", "AI Engineer"
         ]
     )
     
@@ -153,35 +197,25 @@ with col1:
         options=["Entry-Level", "Mid-Level", "Senior", "Executive"]
     )
     
-    # Región y configuración de trabajo
-    st.subheader("Ubicación")
-    
     region = st.selectbox(
         "Región de la Empresa",
         options=["North America", "Europe", "Asia", "South America", "Africa", "Oceania"]
     )
-    
-    residence_region = st.selectbox(
-        "Región de Residencia del Empleado",
-        options=["North America", "Europe", "Asia", "South America", "Africa", "Oceania"]
-    )
-    
-    # Feedback sobre ubicaciones
-    if region != residence_region:
-        st.info("📌 Has seleccionado diferentes regiones para la empresa y tu residencia.")
     
     work_setting = st.selectbox(
         "Modalidad de Trabajo",
         options=["Remote", "Hybrid", "On-site"]
     )
     
-    # Sección de detalles adicionales (expandible)
-    with st.expander("Detalles Adicionales"):
-        company_sector = st.selectbox(
-            "Sector de la Empresa",
-            options=["Technology", "Finance", "Healthcare", "Retail", "Manufacturing", "Education", "Other"]
-        )
-        
+    company_sector = st.selectbox(
+        "Sector de la Empresa",
+        options=["Technology", "Finance", "Healthcare", "Retail", "Manufacturing", "Education", "Other"]
+    )
+    
+    # VARIABLES ADICIONALES (NO USADAS POR EL MODELO)
+    st.subheader("Detalles Adicionales")
+    
+    with st.expander("Información Complementaria", expanded=False):
         company_size = st.selectbox(
             "Tamaño de la Empresa",
             options=["Small", "Medium", "Large"]
@@ -192,184 +226,64 @@ with col1:
             options=["Full-time", "Part-time", "Contract", "Freelance"]
         )
         
-        ai_relationship = st.selectbox(
-            "Relación con IA",
-            options=["Develops AI", "Uses AI", "No direct AI work"]
+        tech_specialization = st.slider(
+            "Especialización Técnica",
+            min_value=1.0,
+            max_value=10.0,
+            value=7.0,
+            step=0.5,
+            help="Nivel de especialización técnica (1-10)"
         )
-    
-    # Sección de métricas (sliders)
-    st.subheader("📊 Métricas y Habilidades")
-    
-    tech_specialization = st.slider(
-        "Especialización Técnica",
-        min_value=1.0,
-        max_value=10.0,
-        value=7.0,
-        step=0.5,
-        help="Nivel de especialización técnica (1-10)"
-    )
-    
-    english_level = st.slider(
-        "Nivel de Inglés",
-        min_value=1.0,
-        max_value=10.0,
-        value=7.0,
-        step=0.5
-    )
-    
-    demand_index = st.slider(
-        "Índice de Demanda del Rol",
-        min_value=1.0,
-        max_value=10.0,
-        value=5.0,
-        step=0.5
-    )
-    
-    automation_risk = st.slider(
-        "Riesgo de Automatización",
-        min_value=1.0,
-        max_value=10.0,
-        value=5.0,
-        step=0.5
-    )
-    
-    work_life_balance = st.slider(
-        "Balance Trabajo-Vida",
-        min_value=1.0,
-        max_value=5.0,
-        value=3.5,
-        step=0.5
-    )
-    
-    cost_of_living_index = st.slider(
-        "Índice de Costo de Vida",
-        min_value=30.0,
-        max_value=100.0,
-        value=70.0,
-        step=5.0
-    )
+        
+        english_level = st.slider(
+            "Nivel de Inglés",
+            min_value=1.0,
+            max_value=10.0,
+            value=7.0,
+            step=0.5
+        )
 
 # Columna derecha para resultados y visualizaciones
 with col2:
     st.header("💰 Predicción de Salario")
-    
-    # Modo de diagnóstico
-    debug_mode = st.checkbox("Modo Diagnóstico", value=False)
     
     # Botón para hacer la predicción
     if st.button("Calcular Salario Estimado", type="primary"):
         # Siempre calcular la predicción simulada como respaldo
         simulated_salary = get_simulated_prediction(
             job_category, experience_level, region, 
-            company_sector, tech_specialization, work_setting
+            work_setting, company_sector
         )
         
-        if model_loaded:
+        if model_loaded and not use_simulation:
             try:
-                # Preparar los datos para la predicción
+                # Preparar datos para el modelo simple (solo las variables clave)
                 input_data = {
                     'job_category': job_category,
                     'experience_level_desc': experience_level,
-                    'employment_type_desc': employment_type,
-                    'company_location': 'United States',  # Valor por defecto
-                    'employee_residence': 'United States',  # Valor por defecto
-                    'company_size_desc': company_size,
-                    'work_setting': work_setting,
                     'region': region,
-                    'residence_region': residence_region,
-                    'domestic_employment': region == residence_region,  # Calculado
-                    'economic_period': 'Post-Pandemic',  # Valor por defecto
-                    'role_maturity': 'Established',  # Valor por defecto
-                    'company_sector': company_sector,
-                    'career_path': 'Technical',  # Valor por defecto
-                    'ai_relationship': ai_relationship,
-                    'work_year': 2023,  # Valor por defecto
-                    'tech_specialization': float(tech_specialization),  # Forzar conversión
-                    'english_level': float(english_level),  # Forzar conversión
-                    'work_life_balance': float(work_life_balance),  # Forzar conversión
-                    'demand_index': float(demand_index),  # Forzar conversión
-                    'automation_risk': float(automation_risk),  # Forzar conversión
-                    'cost_of_living_index': float(cost_of_living_index),  # Forzar conversión
-                    'salary_to_experience_ratio': 1.0,  # Valor por defecto
-                    'normalized_salary': 100000.0,  # Valor por defecto
-                    'adjusted_salary': 100000.0,  # Valor por defecto
-                    'total_compensation_estimate': 120000.0  # Valor por defecto
+                    'work_setting': work_setting,
+                    'company_sector': company_sector
                 }
                 
                 # Crear DataFrame
                 input_df = pd.DataFrame([input_data])
                 
-                # Mostrar datos de entrada en modo diagnóstico
-                if debug_mode:
-                    st.write("### Datos de Entrada")
-                    st.write(input_df)
-                
-                # Ejecutar prueba de sensibilidad en modo diagnóstico
-                if debug_mode:
-                    st.write("### Prueba de Sensibilidad del Modelo")
-                    test_inputs = []
-                    test_predictions = []
-                    
-                    for level in ["Entry-Level", "Mid-Level", "Senior", "Executive"]:
-                        try:
-                            test_df = input_df.copy()
-                            test_df["experience_level_desc"] = level
-                            test_pred = model.predict(test_df)[0]
-                            test_inputs.append(level)
-                            test_predictions.append(test_pred)
-                        except Exception as e:
-                            st.error(f"Error en prueba con {level}: {e}")
-                    
-                    if test_predictions:
-                        for i, level in enumerate(test_inputs):
-                            st.write(f"- Experiencia: {level} → Predicción: ${test_predictions[i]:,.2f}")
-                        
-                        # Verificar si las predicciones varían
-                        if len(set(test_predictions)) == 1:
-                            st.warning("⚠️ PROBLEMA DETECTADO: El modelo devuelve la misma predicción para todos los niveles de experiencia.")
-                
                 # Hacer predicción
                 predicted_salary = model.predict(input_df)[0]
                 
-                # Verificar si la predicción parece razonable
+                # Verificar que la predicción es razonable
                 if predicted_salary < 10000 or predicted_salary > 500000:
                     st.warning(f"⚠️ La predicción del modelo (${predicted_salary:,.2f}) parece fuera de rango. Usando predicción simulada.")
                     predicted_salary = simulated_salary
-                
-                # Verificar si el modelo varía las predicciones
-                test_variation = False
-                try:
-                    test_df1 = input_df.copy()
-                    test_df1["experience_level_desc"] = "Entry-Level"
-                    
-                    test_df2 = input_df.copy()
-                    test_df2["experience_level_desc"] = "Executive"
-                    
-                    pred1 = model.predict(test_df1)[0]
-                    pred2 = model.predict(test_df2)[0]
-                    
-                    # Si la diferencia es menor al 5%, algo anda mal
-                    if abs(pred1 - pred2) / max(pred1, pred2) < 0.05:
-                        test_variation = True
-                except:
-                    pass
-                
-                if test_variation:
-                    st.warning("⚠️ El modelo no está diferenciando adecuadamente entre distintos perfiles. Usando predicción simulada.")
-                    predicted_salary = simulated_salary
-                
-                if debug_mode:
-                    st.write(f"Predicción del modelo: ${predicted_salary:,.2f}")
-                    st.write(f"Predicción simulada: ${simulated_salary:,.2f}")
                 
             except Exception as e:
                 st.error(f"Error al hacer la predicción: {e}")
                 st.write("Usando predicción simulada debido al error.")
                 predicted_salary = simulated_salary
         else:
-            st.warning("Modelo no disponible. Usando predicción simulada.")
             predicted_salary = simulated_salary
-            
+        
         # Mostrar el resultado (siempre se muestra una predicción)
         st.markdown(f"""
         ## Salario Estimado:
@@ -394,10 +308,29 @@ with col2:
             )
         
         with col_metrics3:
-            # Percentil estimado (simulado)
+            # Percentil estimado basado en experiencia y región
+            percentiles = {
+                "Entry-Level": 30,
+                "Mid-Level": 55,
+                "Senior": 80,
+                "Executive": 90
+            }
+            percentile_base = percentiles.get(experience_level, 50)
+            
+            # Ajustar según región
+            region_adjustment = {
+                "North America": 10, 
+                "Europe": 5, 
+                "Asia": -5, 
+                "South America": -8, 
+                "Africa": -10, 
+                "Oceania": 0
+            }
+            final_percentile = min(95, max(5, percentile_base + region_adjustment.get(region, 0)))
+            
             st.metric(
                 "Percentil Salarial",
-                f"{min(max(tech_specialization * 8, 50), 95):,.0f}%"
+                f"{final_percentile}%"
             )
         
         # Visualización contextual
@@ -405,7 +338,7 @@ with col2:
         
         # Generar datos de comparación
         comparison_data = {
-            'Categoría': ['Tú', 'Promedio del Sector', 'Top 10%'],
+            'Categoría': ['Tu Perfil', 'Promedio Sector', 'Top 10%'],
             'Salario': [
                 predicted_salary,
                 predicted_salary * 0.85,
@@ -417,7 +350,8 @@ with col2:
         
         # Gráfico de comparación
         fig, ax = plt.subplots(figsize=(10, 4))
-        bars = sns.barplot(x='Categoría', y='Salario', data=df_comparison, ax=ax)
+        colors = ['#1f77b4', '#7f7f7f', '#2ca02c']
+        bars = sns.barplot(x='Categoría', y='Salario', data=df_comparison, ax=ax, palette=colors)
         
         # Añadir etiquetas
         for i, bar in enumerate(bars.patches):
@@ -435,111 +369,166 @@ with col2:
         st.pyplot(fig)
         
         # Factores clave que afectan el salario
-        st.subheader("Factores Clave de Impacto")
+        st.subheader("Factores de Impacto")
         impact_data = {
             'Factor': [
-                'Especialización Técnica', 
                 'Nivel de Experiencia', 
-                'Ubicación Geográfica',
+                'Región',
                 'Sector de la Empresa',
-                'Trabajo Remoto'
+                'Modalidad de Trabajo',
+                'Categoría de Trabajo'
             ],
             'Impacto': [
-                tech_specialization / 10,
                 {"Entry-Level": 0.3, "Mid-Level": 0.6, "Senior": 0.8, "Executive": 1.0}[experience_level],
                 {"North America": 0.9, "Europe": 0.7, "Asia": 0.5, "South America": 0.4, "Africa": 0.3, "Oceania": 0.8}[region],
                 {"Technology": 0.8, "Finance": 0.85, "Healthcare": 0.7, "Retail": 0.6, "Manufacturing": 0.65, "Education": 0.5, "Other": 0.6}[company_sector],
-                {"Remote": 0.8, "Hybrid": 0.7, "On-site": 0.6}[work_setting],
+                {"Remote": 0.7, "Hybrid": 0.6, "On-site": 0.5}[work_setting],
+                {"Data Scientist": 0.8, "ML Engineer": 0.85, "Data Engineer": 0.75, "Data Analyst": 0.6, "Business Analyst": 0.55, "Research Scientist": 0.9, "Data Science Manager": 0.95, "AI Engineer": 0.85}.get(job_category, 0.7)
             ]
         }
         
         df_impact = pd.DataFrame(impact_data)
         
+        # Ordenar por impacto
+        df_impact = df_impact.sort_values('Impacto', ascending=False).reset_index(drop=True)
+        
         # Graficar impactos
         fig2, ax2 = plt.subplots(figsize=(10, 4))
-        bars2 = sns.barplot(x='Factor', y='Impacto', data=df_impact, ax=ax2)
+        colors2 = sns.color_palette("viridis", len(df_impact))
+        bars2 = sns.barplot(x='Factor', y='Impacto', data=df_impact, ax=ax2, palette=colors2)
         
-        ax2.set_ylabel('Impacto Relativo (0-1)')
-        ax2.set_title('Factores que Impactan tu Salario')
+        # Añadir porcentajes
+        for i, bar in enumerate(bars2.patches):
+            bars2.text(
+                bar.get_x() + bar.get_width()/2.,
+                bar.get_height() + 0.02,
+                f"{df_impact['Impacto'].iloc[i]:.0%}",
+                ha='center',
+                color='black',
+                fontweight='bold'
+            )
+        
+        ax2.set_ylabel('Impacto Relativo')
+        ax2.set_title('Factores que Influyen en el Salario')
+        ax2.set_ylim(0, 1.1)  # Ajustar límite para etiquetas
         st.pyplot(fig2)
 
-# Sección inferior
+# Sección inferior - Interpretación
 st.markdown("---")
-st.markdown("### 📘 Cómo interpretar los resultados")
-st.markdown("""
-- **Salario Estimado**: Predicción basada en los factores ingresados.
-- **Salario Potencial**: Estimación si avanzas al siguiente nivel de experiencia.
-- **Percentil Salarial**: Posición estimada en la distribución salarial del mercado.
-- **Factores de Impacto**: Muestra qué factores tienen mayor influencia en tu salario.
-""")
+st.header("📊 Interpretación de Resultados")
 
-# Modo de solución de problemas
-with st.expander("Solución de Problemas", expanded=False):
-    st.write("### Diagnóstico del Sistema")
-    
-    st.write("#### Verificación del Modelo")
-    if not model_loaded:
-        st.error("❌ Modelo no cargado.")
-    else:
-        st.success("✅ Modelo cargado correctamente.")
-        
-        # Verificar si el modelo es un pipeline
-        if hasattr(model, 'steps'):
-            st.success(f"✅ El modelo es un pipeline con pasos: {[step[0] for step in model.steps]}")
-        else:
-            st.warning("⚠️ El modelo no parece ser un pipeline completo. Puede faltar el preprocesamiento.")
-    
-    st.write("#### Información del Entorno")
-    st.write(f"- Python version: {pd.__version__}")
-    st.write(f"- Pandas version: {pd.__version__}")
-    st.write(f"- NumPy version: {np.__version__}")
-    
-    # Opción para recrear el pipeline si hay problemas
-    if st.button("Intentar Recrear Pipeline"):
-        st.write("Esta funcionalidad requiere acceso al código fuente del entrenamiento.")
-        st.code("""
-# Ejemplo de código para recrear el pipeline:
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.impute import SimpleImputer
+# Crear columnas para secciones explicativas
+col_exp1, col_exp2, col_exp3 = st.columns(3)
 
-# Definir transformadores para variables categóricas y numéricas
-categorical_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
-    ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
-])
+with col_exp1:
+    st.subheader("Sobre la Predicción")
+    st.markdown("""
+    - El **Salario Estimado** se basa en los 5 factores más importantes que influyen en la compensación.
+    - El **Salario Mensual** es una simple división por 12 para referencia rápida.
+    - El **Potencial** muestra el crecimiento esperado al avanzar al siguiente nivel de experiencia.
+    """)
 
-numerical_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='median')),
-    ('scaler', StandardScaler())
-])
+with col_exp2:
+    st.subheader("Factores Clave")
+    st.markdown("""
+    - **Nivel de Experiencia**: El factor individual más determinante.
+    - **Región Geográfica**: Norte América y Europa suelen tener salarios más altos.
+    - **Sector**: Finanzas y tecnología tienden a pagar mejor que educación o comercio.
+    - **Modalidad**: El trabajo remoto puede afectar la compensación en ambas direcciones.
+    - **Categoría**: Roles especializados como ML Engineer o Research Scientist suelen tener mejor paga.
+    """)
 
-# Definir columnas categóricas y numéricas
-categorical_cols = [...]  # Llenar con columnas categóricas
-numerical_cols = [...]    # Llenar con columnas numéricas
-
-# Crear el transformador principal
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('num', numerical_transformer, numerical_cols),
-        ('cat', categorical_transformer, categorical_cols)
-    ])
-
-# Cargar el modelo y crear el pipeline completo
-from sklearn.ensemble import GradientBoostingRegressor
-model_only = GradientBoostingRegressor()  # Cargar el modelo real
-pipeline = Pipeline(steps=[
-    ('preprocessor', preprocessor),
-    ('model', model_only)
-])
-
-# Guardar el pipeline completo
-import pickle
-with open('fixed_model.pkl', 'wb') as f:
-    pickle.dump(pipeline, f)
-        """)
+with col_exp3:
+    st.subheader("Limitaciones")
+    st.markdown("""
+    - Las predicciones son **estimaciones** basadas en datos históricos.
+    - Factores como el tamaño específico de la empresa, habilidades particulares, o negociaciones individuales pueden modificar significativamente el salario final.
+    - Los mercados con alta demanda de talento pueden superar estas estimaciones.
+    - El modelo no considera tendencias recientes del mercado laboral posteriores a los datos de entrenamiento.
+    """)
 
 # Pie de página
 st.markdown("---")
 st.caption("© 2023 Predictor de Salarios en Data Science | Desarrollado con Streamlit")
+
+# Diagnóstico avanzado (oculto por defecto)
+with st.expander("🛠️ Diagnóstico y Solución de Problemas", expanded=False):
+    st.write("### Información del Sistema")
+    
+    # Estado del modelo
+    if model_loaded:
+        if use_simulation:
+            st.warning("⚠️ Modelo cargado pero usando sistema de respaldo")
+        else:
+            st.success("✅ Modelo cargado y funcionando correctamente")
+    else:
+        st.error("❌ Modelo no cargado")
+    
+    # Información técnica
+    st.write("#### Detalles Técnicos")
+    st.write(f"- Python: {pd.__version__}")
+    st.write(f"- Pandas: {pd.__version__}")
+    st.write(f"- NumPy: {np.__version__}")
+    st.write(f"- Ruta del modelo: {os.path.abspath('simple_salary_model.pkl')}")
+    
+    # Prueba manual
+    st.write("#### Prueba Manual del Modelo")
+    if st.button("Ejecutar Prueba Completa"):
+        if model_loaded:
+            # Crear datos de prueba variados
+            test_data = []
+            for job in ["Data Scientist", "ML Engineer", "Data Analyst"]:
+                for exp in ["Entry-Level", "Mid-Level", "Senior"]:
+                    for reg in ["North America", "Europe", "Asia"]:
+                        test_data.append({
+                            'job_category': job,
+                            'experience_level_desc': exp,
+                            'region': reg,
+                            'work_setting': 'Remote',
+                            'company_sector': 'Technology'
+                        })
+            
+            test_df = pd.DataFrame(test_data)
+            
+            try:
+                predictions = model.predict(test_df)
+                
+                # Añadir predicciones al DataFrame
+                test_df['Salario Predicho'] = [f"${p:,.2f}" for p in predictions]
+                
+                # Mostrar resultados
+                st.dataframe(test_df)
+                
+                # Análisis de variación
+                st.write("#### Análisis de Variación")
+                
+                # Por experiencia
+                exp_df = pd.DataFrame({
+                    'Nivel': ["Entry-Level", "Mid-Level", "Senior"],
+                    'Salario Promedio': [
+                        predictions[test_df['experience_level_desc'] == "Entry-Level"].mean(),
+                        predictions[test_df['experience_level_desc'] == "Mid-Level"].mean(),
+                        predictions[test_df['experience_level_desc'] == "Senior"].mean()
+                    ]
+                })
+                
+                st.write("Por Nivel de Experiencia:")
+                st.dataframe(exp_df)
+                
+                # Por región
+                reg_df = pd.DataFrame({
+                    'Región': ["North America", "Europe", "Asia"],
+                    'Salario Promedio': [
+                        predictions[test_df['region'] == "North America"].mean(),
+                        predictions[test_df['region'] == "Europe"].mean(),
+                        predictions[test_df['region'] == "Asia"].mean()
+                    ]
+                })
+                
+                st.write("Por Región:")
+                st.dataframe(reg_df)
+                
+            except Exception as e:
+                st.error(f"Error en prueba completa: {e}")
+        else:
+            st.error("No se puede ejecutar la prueba sin un modelo cargado")
