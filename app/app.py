@@ -1185,24 +1185,62 @@ def main():
             st.session_state.page = page_name
             st.rerun()
         
-        # Use buttons instead of radio to ensure immediate response
-        col1, col2, col3 = st.columns(3)
+        # Use buttons stacked in a single column for navigation
+        if st.button("Home", key="home_btn", use_container_width=True):
+            navigate_to("Home")
+            
+        if st.button("Visualizations", key="viz_btn", use_container_width=True):
+            navigate_to("Visualizations")
+            
+        if st.button("Prediction Tool", key="pred_btn", use_container_width=True):
+            navigate_to("Prediction Tool")
         
-        if st.button("Home", key="home_btn"):
-                navigate_to("Home")
+        # Visual indicator of current page - highlight current page with a colored label
+        st.markdown(
+            f"""
+            <div style="margin-top: 10px; text-align: center;">
+                <span style="background-color: #3498db; color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.8em;">
+                    {st.session_state.page}
+                </span>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
         
-        if st.button("Visualizations", key="viz_btn"):
-                navigate_to("Visualizations")
-        
-        if st.button("Prediction", key="pred_btn"):
-                navigate_to("Prediction Tool")
-        
-        # Visual indicator of current page
-        #st.markdown(f"**Current: {st.session_state.page}**")
-        
+        # Add visual footer instead of plain about text
         st.markdown("---")
-        st.markdown("### About")
-        st.info("This app helps data professionals estimate their market value and understand salary trends in the field.")
+        st.markdown(
+            """
+            <div style="background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); 
+                        border-radius: 10px; padding: 15px; margin-top: 20px; 
+                        border: 1px solid #3498db; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h3 style="color: white; margin-bottom: 10px; font-size: 1.2em; text-align: center;">
+                    <span style="margin-right: 8px;">💰</span> Salary Predictor
+                </h3>
+                <p style="color: white; font-size: 0.9em; margin-bottom: 10px; text-align: center;">
+                    Estimate your data science market value
+                </p>
+                <div style="display: flex; justify-content: center; margin-top: 15px;">
+                    <span style="color: #3498db; background: rgba(255,255,255,0.2); 
+                                 margin: 0 5px; padding: 5px 10px; border-radius: 5px; font-size: 1em;">
+                        📊
+                    </span>
+                    <span style="color: #3498db; background: rgba(255,255,255,0.2); 
+                                 margin: 0 5px; padding: 5px 10px; border-radius: 5px; font-size: 1em;">
+                        🔍
+                    </span>
+                    <span style="color: #3498db; background: rgba(255,255,255,0.2); 
+                                 margin: 0 5px; padding: 5px 10px; border-radius: 5px; font-size: 1em;">
+                        💻
+                    </span>
+                </div>
+                <p style="color: #ecf0f1; font-size: 0.7em; margin-top: 15px; text-align: center; opacity: 0.8;">
+                    v1.0.0 • Data Science Analytics Tool
+                </p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
     
     # Display the selected page
     if st.session_state.page == "Home":
