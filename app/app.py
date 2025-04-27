@@ -1760,7 +1760,7 @@ def prediction_page():
             # Additional details section
             st.markdown('<div class="success-box">', unsafe_allow_html=True)
             st.markdown('<h3 class="subsection-header">Additional Details</h3>', unsafe_allow_html=True)
-            st.info("These factors will refine the prediction and provide better insights")
+            st.info("These factors will refine the prediction")
             
             company_size = st.selectbox(
                 "Company Size",
