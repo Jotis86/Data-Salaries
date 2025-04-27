@@ -96,14 +96,32 @@ def load_sample_data():
 
 @st.cache_resource
 def load_model():
-    """Load the prediction model"""
-    try:
-        model_path = os.path.join(os.path.dirname(__file__), "simple_salary_model.pkl")
-        with open(model_path, 'rb') as file:
-            model = pickle.load(file)
-        return model
-    except:
-        return None
+    """Load the prediction model with improved error handling"""
+    # Try multiple approaches to locate the model file
+    possible_paths = [
+        "simple_salary_model.pkl",  # Direct in current directory
+        os.path.join(os.path.dirname(__file__), "simple_salary_model.pkl"),  # Using __file__
+        os.path.join(".", "simple_salary_model.pkl"),  # Explicit current directory
+        os.path.abspath("simple_salary_model.pkl")  # Absolute path
+    ]
+    
+    # Try each path
+    for path in possible_paths:
+        try:
+            st.write(f"Trying to load from: {path}")  # Debug info - remove in production
+            with open(path, 'rb') as file:
+                model = pickle.load(file)
+            st.success(f"Successfully loaded model from {path}")  # Debug info - remove in production
+            return model
+        except Exception as e:
+            st.write(f"Failed loading from {path}: {str(e)}")  # Debug info - remove in production
+            continue
+    
+    # If we get here, all attempts failed
+    st.error("Could not load the model file from any location.")
+    return None
+
+
 
 def test_model_sensitivity(model):
     """Test if model responds to changes in experience levels"""
