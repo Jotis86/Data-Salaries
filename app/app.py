@@ -1019,6 +1019,9 @@ def visualizations_page():
                 ax.text(bar.get_x() + bar.get_width()/2., height + 5000,
                     f'${height:,.0f}',
                     ha='center', va='bottom', fontweight='bold', color='white')
+                
+            # Rotate x-axis labels for better readability
+            plt.xticks(rotation=45, ha='right', fontweight='bold')
             
             # Customize graph
             ax.set_xlabel('Relationship to AI', fontsize=12, fontweight='bold')
