@@ -10,4 +10,5 @@ seaborn
 # Image handling
 Pillow
 
-sklearn
+# Machine Learning
+scikit-learn
