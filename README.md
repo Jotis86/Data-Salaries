@@ -64,3 +64,16 @@ The project is deployed as an interactive web application using Streamlit, makin
 
 ## 🏁 Conclusions
 This project demonstrates how advanced data analysis can provide valuable insights into salary trends in the Data Science field. The developed model serves as a tool for professionals seeking salary references and for organizations aiming to establish competitive compensation structures.
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### MIT License Summary
+- ✅ Commercial use
+- ✅ Modification
+- ✅ Distribution
+- ✅ Private use
+- ❗ No liability or warranty
+
+The MIT License is a permissive license that allows you to freely use, modify, and distribute this software, both in private and commercial applications, provided that the original copyright notice and permission notice are included in all copies or substantial portions of the software.
