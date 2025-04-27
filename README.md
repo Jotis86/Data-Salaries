@@ -35,14 +35,17 @@ This data analysis project develops a predictive model to estimate salaries in t
    - Generation of personalized career recommendations
    - Visualization of salary projections
 
-## 📊 Results and Performance
-The final model achieved:
+## 🚀 Streamlit Application
 
-- **RMSE**: \$48,450.43
-- **MAE**: \$37,201.02
-- **R² Score**: 0.4054
+### Overview
+The project is deployed as an interactive web application using Streamlit, making complex data insights accessible to all users regardless of their technical background.
 
-These indicators show there is room for improvement, particularly through better feature selection and potentially incorporating more region-specific training data.
+### Key Features
+- **Interactive Dashboard**: Visual exploration of salary trends with dynamic filters
+- **Personalized Salary Predictor**: Input your professional profile to get tailored salary estimates
+- **Career Path Analyzer**: See how different career choices affect compensation
+- **Technology Stack Analysis**: Discover which skills are most valuable for your role
+- **Salary Growth Projections**: Visualize potential earnings over a 5-year period
 
 ## 🔮 Future Improvements
 - Implementation of more advanced feature selection techniques
