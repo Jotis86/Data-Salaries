@@ -1775,6 +1775,10 @@ def prediction_page():
         st.markdown('<div style="text-align: center; margin-top: 20px;">', unsafe_allow_html=True)
         predict_button = st.button("Calculate My Salary Estimate", type="primary", key="predict_salary", use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Show success message in the same tab after calculation
+        if "calculation_complete" in st.session_state and st.session_state.calculation_complete:
+            st.success("✅ Your salary has been calculated successfully! Click on the 'View Results' tab to see your personalized salary prediction.")
     
     # Results tab
     with tab2:
@@ -1819,6 +1823,7 @@ def prediction_page():
                     st.session_state.base_salary = base_predicted_salary
                     st.session_state.adjusted_salary = adjusted_salary
                     st.session_state.results_ready = True
+                    st.session_state.calculation_complete = True
                     
                     # Store other values for visualization
                     st.session_state.job_category = job_category
@@ -1826,9 +1831,6 @@ def prediction_page():
                     st.session_state.region = region
                     st.session_state.tech_specialization = tech_specialization
                     st.session_state.english_level = english_level
-
-                    # Add a success message after calculation
-                    st.success("✅ Your salary has been calculated successfully! Click on the 'View Results' tab to see your personalized salary prediction.")
                     
                 except Exception as e:
                     st.error(f"Error making prediction: {e}")
@@ -2010,6 +2012,9 @@ def prediction_page():
         else:
             # Message when no results are available
             st.info("Complete the form in the 'Input Your Details' tab and click 'Calculate My Salary Estimate' to see your personalized salary prediction.")
+
+
+
 
 # ======= MAIN APP =======
 def main():
