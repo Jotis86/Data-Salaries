@@ -1052,41 +1052,50 @@ def prediction_page():
 
 # ======= MAIN APP =======
 def main():
-    # Initialize session state for navigation
-    if 'page' not in st.session_state:
-        st.session_state.page = "Home"
-    
     # Apply unified CSS to fix styling issues across all pages
     st.markdown("""
     <style>
-        /* Base text and background colors - ensure visibility */
+        /* Base text and background colors with stronger contrast */
         body {
-            color: #333333 !important;
-            background-color: #f9f9f9 !important;
+            color: #000000 !important;
+            background-color: #ffffff !important;
         }
-        p, h1, h2, h3, h4, h5, h6, li, span, div {
-            color: #333333 !important;
+        
+        /* Force ALL text elements to have dark color */
+        p, h1, h2, h3, h4, h5, h6, li, span, div, label, .stMarkdown, 
+        .stText, [data-testid="stVerticalBlock"] p {
+            color: #000000 !important;
+            font-weight: 500 !important;
         }
         
         /* Fix sidebar styling */
-        .css-1d391kg, .css-1lcbmhc, [data-testid="stSidebar"] {
+        [data-testid="stSidebar"], .css-1d391kg, .css-1lcbmhc {
             background-color: #f5f5f5 !important;
         }
         
-        /* Sidebar text and controls */
-        .css-163ttbj, .css-10trblm, [data-testid="stSidebar"] h1, 
-        [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, 
-        [data-testid="stSidebar"] p, [data-testid="stSidebar"] li {
+        /* Make sidebar headers bold and very visible */
+        [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, 
+        [data-testid="stSidebar"] h3, [data-testid="stSidebar"] .stTitle {
             color: #1E3A8A !important;
+            font-weight: 700 !important;
         }
         
-        /* Radio buttons in sidebar */
+        /* Make sidebar paragraphs dark and easy to read */
+        [data-testid="stSidebar"] p, [data-testid="stSidebar"] li {
+            color: #000000 !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Prominent radio buttons */
         .stRadio > div {
             padding: 10px 0 !important;
         }
         .stRadio label {
             background-color: transparent !important;
-            color: #333333 !important;
+            color: #000000 !important;
+            font-weight: 500 !important;
+            padding: 8px !important;
+            border-radius: 4px !important;
         }
         .stRadio label:hover {
             background-color: rgba(30, 136, 229, 0.1) !important;
@@ -1096,59 +1105,87 @@ def main():
             border-color: #1976D2 !important;
         }
         
-        /* Override for container classes to ensure proper background/text contrast */
-        .main-header, .section-header, .subsection-header {
+        /* Style headings throughout the app */
+        .main-header {
             color: #1E88E5 !important;
+            font-size: 2.5rem !important;
+            font-weight: 800 !important;
         }
-        .card-title, .card-icon, .custom-header {
-            color: #1E3A8A !important;
+        .section-header {
+            color: #111111 !important;
+            font-size: 1.8rem !important;
+            font-weight: 700 !important;
+        }
+        .subsection-header {
+            color: #222222 !important;
+            font-size: 1.3rem !important;
+            font-weight: 650 !important;
         }
         
-        /* Container backgrounds */
+        /* Container backgrounds with dark text */
         .chart-container, .metric-container, .info-card, .info-box, 
         .success-box, .warning-box, .error-box, .limitations-container {
             background-color: white !important;
-            color: #333333 !important;
+            color: #000000 !important;
+            border: 1px solid #e0e0e0 !important;
         }
         
-        /* Hero section explicitly keeps white text */
-        .hero-container {
-            background: linear-gradient(135deg, #1E88E5 0%, #0D47A1 100%) !important;
-        }
-        .hero-container h1, .hero-container p, .hero-container span, .hero-title, .hero-text {
-            color: white !important;
-        }
-        
-        /* List items in all contexts */
+        /* Ensure list items are visible */
         .styled-list li {
-            color: #333333 !important;
+            color: #000000 !important;
+            font-weight: 500 !important;
+            margin-bottom: 10px !important;
         }
         .styled-list li:before {
             color: #3B82F6 !important;
         }
         
-        /* Info box styles */
+        /* Alert boxes */
         .stAlert {
             background-color: #e1f5fe !important;
-            color: #333333 !important;
         }
-        .stAlert p {
-            color: #333333 !important;
+        .stAlert p, .stAlert div {
+            color: #000000 !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Hero section explicitly keeps white text but increases visibility */
+        .hero-container {
+            background: linear-gradient(135deg, #1E88E5 0%, #0D47A1 100%) !important;
+            padding: 2rem !important;
+        }
+        .hero-container h1, .hero-title {
+            color: white !important;
+            font-weight: 800 !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+        }
+        .hero-container p, .hero-text {
+            color: white !important;
+            font-weight: 500 !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
         }
     </style>
     """, unsafe_allow_html=True)
+    
+    # Initialize session state for navigation
+    if 'page' not in st.session_state:
+        st.session_state.page = "Home"
     
     # Sidebar navigation
     with st.sidebar:
         st.image("https://img.freepik.com/free-vector/illustration-data-analysis-graph_53876-18139.jpg", width=200)
         st.title("Navigation")
         
-        # Navigation options
-        selected = st.radio("Go to:", ["Home", "Visualizations", "Prediction Tool"], index=["Home", "Visualizations", "Prediction Tool"].index(st.session_state.page))
+        # FIXED: Use a direct approach instead of updating session state first
+        # This avoids the double-click issue
+        page = st.radio(
+            "Go to:", 
+            ["Home", "Visualizations", "Prediction Tool"], 
+            index=["Home", "Visualizations", "Prediction Tool"].index(st.session_state.page)
+        )
         
-        # Update session state on change
-        if selected != st.session_state.page:
-            st.session_state.page = selected
+        # Update session state
+        st.session_state.page = page
         
         st.markdown("---")
         st.markdown("### About")
