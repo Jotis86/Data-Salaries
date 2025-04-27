@@ -1826,6 +1826,9 @@ def prediction_page():
                     st.session_state.region = region
                     st.session_state.tech_specialization = tech_specialization
                     st.session_state.english_level = english_level
+
+                    # Add a success message after calculation
+                    st.success("✅ Your salary has been calculated successfully! Click on the 'View Results' tab to see your personalized salary prediction.")
                     
                 except Exception as e:
                     st.error(f"Error making prediction: {e}")
