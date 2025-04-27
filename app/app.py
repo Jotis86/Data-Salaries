@@ -360,19 +360,6 @@ def home_page():
     * The tool doesn't account for all possible factors that might influence individual compensation
     """)
     
-    # Call to action
-    st.markdown('<div class="highlight">', unsafe_allow_html=True)
-    st.markdown("### Ready to explore your salary potential?")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("View Salary Trends", key="goto_viz"):
-            st.session_state.page = "Visualizations"
-            st.experimental_rerun()
-    with col2:
-        if st.button("Get Salary Prediction", key="goto_predict"):
-            st.session_state.page = "Prediction Tool"
-            st.experimental_rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
 def visualizations_page():
     """Display the visualizations page content"""
@@ -682,13 +669,6 @@ def visualizations_page():
     5. **Technical Expertise**: Higher technical specialization can increase compensation by 10-15%
     """)
     
-    # Call to action
-    st.markdown('<div class="highlight">', unsafe_allow_html=True)
-    st.markdown("### Ready to see how these factors apply to your profile?")
-    if st.button("Get Your Salary Prediction", key="viz_to_predict"):
-        st.session_state.page = "Prediction Tool"
-        st.experimental_rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
 def prediction_page():
     """Display the prediction tool page content"""
@@ -1019,10 +999,6 @@ def main():
         st.markdown("### About")
         st.info("This app helps data professionals estimate their market value and understand salary trends in the field.")
         
-        st.markdown("### Resources")
-        st.markdown("- [Career Development Guide](https://example.com)")
-        st.markdown("- [Salary Negotiation Tips](https://example.com)")
-        st.markdown("- [Skills Assessment Tools](https://example.com)")
     
     # Display the selected page
     if st.session_state.page == "Home":
