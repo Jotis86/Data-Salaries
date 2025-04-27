@@ -2,6 +2,13 @@
 
 ![banner](images/banner.png)
 
+
+[![GitHub commits](https://img.shields.io/github/commit-activity/t/username/Data-Salaries?label=Total%20Commits)](https://github.com/username/Data-Salaries/commits/main)
+[![GitHub stars](https://img.shields.io/github/stars/username/Data-Salaries.svg)](https://github.com/username/Data-Salaries/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/username/Data-Salaries.svg)](https://github.com/username/Data-Salaries/network)
+[![GitHub issues](https://img.shields.io/github/issues/username/Data-Salaries.svg)](https://github.com/username/Data-Salaries/issues)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 ## 📝 Project Description
 This data analysis project develops a predictive model to estimate salaries in the field of Data Science and Artificial Intelligence. Using advanced machine learning techniques, the system analyzes factors such as experience, geographic location, technical specialization, and work modality to generate personalized salary estimates.
 
