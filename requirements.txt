@@ -1,0 +1,11 @@
+# Core packages
+streamlit
+pandas
+numpy
+
+# Visualization
+matplotlib
+seaborn
+
+# Image handling
+Pillow
