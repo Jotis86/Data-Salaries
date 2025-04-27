@@ -3,10 +3,10 @@
 ![banner](images/banner.png)
 
 
-[![GitHub commits](https://img.shields.io/github/commit-activity/t/username/Data-Salaries?label=Total%20Commits)](https://github.com/username/Data-Salaries/commits/main)
-[![GitHub stars](https://img.shields.io/github/stars/username/Data-Salaries.svg)](https://github.com/username/Data-Salaries/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/username/Data-Salaries.svg)](https://github.com/username/Data-Salaries/network)
-[![GitHub issues](https://img.shields.io/github/issues/username/Data-Salaries.svg)](https://github.com/username/Data-Salaries/issues)
+[![GitHub commits](https://img.shields.io/github/commit-activity/t/Jotis86/Data-Salaries?label=Total%20Commits)](https://github.com/Jotis86/Data-Salaries/commits/main)
+[![GitHub stars](https://img.shields.io/github/stars/Jotis86/Data-Salaries.svg)](https://github.com/Jotis86/Data-Salaries/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Jotis86/Data-Salaries.svg)](https://github.com/Jotis86/Data-Salaries/network)
+[![GitHub issues](https://img.shields.io/github/issues/Jotis86/Data-Salaries.svg)](https://github.com/Jotis86/Data-Salaries/issues)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ## 📝 Project Description
