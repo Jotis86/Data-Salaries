@@ -529,9 +529,9 @@ def visualizations_page():
                 marker='D', color='#e74c3c', alpha=0.8, zorder=5)
         
         # Add salary labels
-        for i, row in job_stats.iterrows():
-            ax.text(row['median'] + 5000, i, f"${row['median']:,.0f}", 
-                    va='center', ha='left', fontweight='bold', color='white')
+        #for i, row in job_stats.iterrows():
+            #ax.text(row['median'] + 5000, i, f"${row['median']:,.0f}", 
+                    #va='center', ha='left', fontweight='bold', color='white')
             
         # Customize graph
         ax.set_xlabel('Median Annual Salary (USD)', fontsize=12, fontweight='bold')
@@ -586,115 +586,110 @@ def visualizations_page():
     # 2. CAREER PROGRESSION
     elif st.session_state.active_tab == "Career Progression":
         # Create a simpler but visually appealing chart showing salary growth by experience level
-    
-        # Get top 6 job categories by median salary for better readability
-        top_jobs = df.groupby('job_category')['salary_in_usd'].median().nlargest(6).index.tolist()
-        filtered_df = df[df['job_category'].isin(top_jobs)]
         
         # Prepare the data for a grouped bar chart
         exp_level_order = ['Entry-Level', 'Mid-Level', 'Senior', 'Executive']
         
-        # Calculate median salaries by job category and experience level
-        exp_data = filtered_df.groupby(['job_category', 'experience_level_desc'])['salary_in_usd'].median().reset_index()
+        # Calculate median salaries by job category and experience level for all jobs
+        all_exp_data = df.groupby(['job_category', 'experience_level_desc'])['salary_in_usd'].median().reset_index()
         
-        # Create a more intuitive and cleaner bar chart
-        fig, ax = plt.subplots(figsize=(14, 8))
+        # Get top 12 job categories by median salary
+        top_jobs = df.groupby('job_category')['salary_in_usd'].median().nlargest(12).index.tolist()
         
-        # Set up the positions for grouped bars
-        job_categories = sorted(exp_data['job_category'].unique())
-        x = np.arange(len(job_categories))
-        width = 0.2  # width of bars
+        # Split into two groups for better visibility
+        first_group = top_jobs[:6]
+        second_group = top_jobs[6:]
         
-        # Define an attractive color palette
-        colors = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c']
-        
-        # Create bars for each experience level
-        for i, level in enumerate(exp_level_order):
-            level_data = exp_data[exp_data['experience_level_desc'] == level]
+        # Function to create chart for a group of job categories
+        def create_career_chart(job_group, chart_title):
+            # Filter data for this group
+            filtered_df = df[df['job_category'].isin(job_group)]
+            exp_data = filtered_df.groupby(['job_category', 'experience_level_desc'])['salary_in_usd'].median().reset_index()
             
-            # Create a dictionary mapping job categories to salaries
-            salary_dict = dict(zip(level_data['job_category'], level_data['salary_in_usd']))
+            # Create a more intuitive and cleaner bar chart
+            fig, ax = plt.subplots(figsize=(14, 8))
             
-            # Get salaries in the correct order
-            values = [salary_dict.get(job, 0) for job in job_categories]
+            # Set up the positions for grouped bars
+            job_categories = sorted(job_group)
+            x = np.arange(len(job_categories))
+            width = 0.2  # width of bars
             
-            # Create the bars
-            bars = ax.bar(x + (i - 1.5) * width, values, width, label=level, color=colors[i], alpha=0.85)
+            # Define an attractive color palette
+            colors = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c']
             
-            # Add value labels to the bars
-            for bar_idx, bar in enumerate(bars):
-                if values[bar_idx] > 0:  # Only label non-zero bars
-                    ax.text(
-                        bar.get_x() + bar.get_width()/2, 
-                        bar.get_height() + 5000, 
-                        f"${values[bar_idx]:,.0f}", 
-                        ha='center', va='bottom', 
-                        fontsize=9, fontweight='bold',
-                        color='white'
-                    )
-        
-        # Add growth arrows and percentages between Executive and Entry-Level for visualization
-        for j, job in enumerate(job_categories):
-            job_data = exp_data[exp_data['job_category'] == job]
-            if len(job_data) >= 2:
-                entry_salary = job_data[job_data['experience_level_desc'] == 'Entry-Level']['salary_in_usd'].values
-                exec_salary = job_data[job_data['experience_level_desc'] == 'Executive']['salary_in_usd'].values
+            # Create bars for each experience level
+            for i, level in enumerate(exp_level_order):
+                level_data = exp_data[exp_data['experience_level_desc'] == level]
                 
-                if len(entry_salary) > 0 and len(exec_salary) > 0:
-                    growth_pct = (exec_salary[0] / entry_salary[0] - 1) * 100
+                # Create a dictionary mapping job categories to salaries
+                salary_dict = dict(zip(level_data['job_category'], level_data['salary_in_usd']))
+                
+                # Get salaries in the correct order
+                values = [salary_dict.get(job, 0) for job in job_categories]
+                
+                # Create the bars
+                bars = ax.bar(x + (i - 1.5) * width, values, width, label=level, color=colors[i], alpha=0.85)
+            
+            # Add growth arrows and percentages between Executive and Entry-Level for visualization
+            for j, job in enumerate(job_categories):
+                job_data = exp_data[exp_data['job_category'] == job]
+                if len(job_data) >= 2:
+                    entry_salary = job_data[job_data['experience_level_desc'] == 'Entry-Level']['salary_in_usd'].values
+                    exec_salary = job_data[job_data['experience_level_desc'] == 'Executive']['salary_in_usd'].values
                     
-                    # Add a vertical arrow showing growth
-                    ax.annotate(
-                        f"+{growth_pct:.0f}%", 
-                        xy=(j, entry_salary[0] + (exec_salary[0] - entry_salary[0])/2),
-                        xytext=(j + 0.25, entry_salary[0] + (exec_salary[0] - entry_salary[0])/2),
-                        arrowprops=dict(arrowstyle='<->', color='#f1c40f', lw=2),
-                        fontsize=10, fontweight='bold', color='#f1c40f'
-                    )
+                    if len(entry_salary) > 0 and len(exec_salary) > 0:
+                        growth_pct = (exec_salary[0] / entry_salary[0] - 1) * 100
+                        
+                        # Add a vertical arrow showing growth
+                        ax.annotate(
+                            f"+{growth_pct:.0f}%", 
+                            xy=(j, entry_salary[0] + (exec_salary[0] - entry_salary[0])/2),
+                            xytext=(j + 0.25, entry_salary[0] + (exec_salary[0] - entry_salary[0])/2),
+                            arrowprops=dict(arrowstyle='<->', color='#f1c40f', lw=2),
+                            fontsize=10, fontweight='bold', color='#f1c40f'
+                        )
+            
+            # Customize the chart
+            ax.set_xticks(x)
+            ax.set_xticklabels(job_categories, rotation=30, ha='right')
+            ax.set_ylabel('Median Salary (USD)', fontsize=14, fontweight='bold')
+            ax.set_title(chart_title, fontsize=20, fontweight='bold', pad=20)
+            
+            # Add a legend with clear labels
+            ax.legend(
+                title='Experience Level', 
+                title_fontsize=12, 
+                fontsize=10, 
+                loc='upper left', 
+                frameon=True, 
+                facecolor='#2c3e50', 
+                edgecolor='#3498db'
+            )
+            
+            # Set background color and style
+            fig.patch.set_facecolor('#2c3e50')
+            ax.set_facecolor('#2c3e50')
+            ax.tick_params(colors='white')
+            ax.xaxis.label.set_color('white')
+            ax.yaxis.label.set_color('white')
+            ax.title.set_color('white')
+            ax.grid(axis='y', linestyle='--', alpha=0.3)
+            
+            for spine in ax.spines.values():
+                spine.set_color('#3498db')
+            
+            plt.tight_layout()
+            return fig
         
-        # Customize the chart
-        ax.set_xticks(x)
-        ax.set_xticklabels(job_categories, rotation=30, ha='right')
-        ax.set_ylabel('Median Salary (USD)', fontsize=14, fontweight='bold')
-        ax.set_title('Career Progression: Salary Growth by Experience Level', 
-                    fontsize=20, fontweight='bold', pad=20)
+        # Create and display the first chart (top 6 roles)
+        st.markdown("### Top Paying Roles")
+        fig1 = create_career_chart(first_group, 'Career Progression: Top 6 Paying Roles')
+        st.pyplot(fig1)
         
-        # Add a legend with clear labels
-        ax.legend(
-            title='Experience Level', 
-            title_fontsize=12, 
-            fontsize=10, 
-            loc='upper left', 
-            frameon=True, 
-            facecolor='#2c3e50', 
-            edgecolor='#3498db'
-        )
-        
-        # Set background color and style
-        fig.patch.set_facecolor('#2c3e50')
-        ax.set_facecolor('#2c3e50')
-        ax.tick_params(colors='white')
-        ax.xaxis.label.set_color('white')
-        ax.yaxis.label.set_color('white')
-        ax.title.set_color('white')
-        ax.grid(axis='y', linestyle='--', alpha=0.3)
-        
-        for spine in ax.spines.values():
-            spine.set_color('#3498db')
-        
-        # Add explanatory annotation
-        ax.text(
-            0.5, -0.15, 
-            "This chart shows how salaries increase with experience across top data science roles.\nThe percentage shows total growth from Entry to Executive level.",
-            transform=ax.transAxes, 
-            ha='center', 
-            fontsize=11, 
-            color='white', 
-            alpha=0.8
-        )
-        
-        plt.tight_layout()
-        st.pyplot(fig)
+        # Create and display the second chart (next 6 roles)
+        st.markdown("### More Popular Roles")
+        fig2 = create_career_chart(second_group, 'Career Progression: Additional Roles')
+        st.pyplot(fig2)
         
         # Create a simple table showing the growth multiplier
         st.markdown("### Salary Growth Multipliers")
@@ -797,7 +792,7 @@ def visualizations_page():
         
         # Create the heatmap
         fig, ax = plt.subplots(figsize=(12, 8))
-        sns.heatmap(region_pivot, annot=True, fmt="$,.0f", cmap="YlGnBu", linewidths=.5, ax=ax)
+        sns.heatmap(region_pivot, annot=True, fmt=".0f", cmap="YlGnBu", linewidths=.5, ax=ax)
         
         # Customize heatmap
         ax.set_title('Regional Salary by Experience Level', fontsize=16, fontweight='bold', pad=20)
@@ -866,53 +861,54 @@ def visualizations_page():
             # Create a scatter plot showing relationship between tech specialization and salary
             fig, ax = plt.subplots(figsize=(12, 8))
             
-            # Group by job category and calculate average tech specialization and salary
-            tech_data = df.groupby(['job_category', 'experience_level_desc'])[['tech_specialization', 'salary_in_usd']].mean().reset_index()
+            # Prepare data
+            scatter_data = df.groupby('job_category').agg({
+                'tech_specialization': 'mean',
+                'salary_in_usd': 'median'
+            }).reset_index()
             
-            # Create color mapping for experience levels
-            exp_colors = {'Entry-Level': '#1abc9c', 'Mid-Level': '#3498db', 'Senior': '#9b59b6', 'Executive': '#e74c3c'}
-            colors = [exp_colors[exp] for exp in tech_data['experience_level_desc']]
+            # Calculate demand index if it doesn't exist
+            if 'demand_index' not in scatter_data.columns:
+                # Create simplified demand index based on job count
+                job_counts = df['job_category'].value_counts().reset_index()
+                job_counts.columns = ['job_category', 'count']
+                scatter_data = scatter_data.merge(job_counts, on='job_category')
+                scatter_data['demand_index'] = scatter_data['count'] / scatter_data['count'].max() * 10
             
-            # Create scatter plot with sized points
-            scatter = ax.scatter(tech_data['tech_specialization'], tech_data['salary_in_usd'], 
-                                s=tech_data['salary_in_usd']/500, c=colors, alpha=0.7)
+            # Create scatter plot with sized and colored points
+            scatter = ax.scatter(scatter_data['tech_specialization'], scatter_data['salary_in_usd'], 
+                            s=scatter_data['demand_index']*40, 
+                            c=scatter_data['demand_index'], cmap='viridis',
+                            alpha=0.7, edgecolors='white', linewidths=1)
             
-            # Add labels for each point
-            for idx, row in tech_data.iterrows():
+            # Add job category labels
+            for i, row in scatter_data.iterrows():
                 ax.annotate(row['job_category'], 
-                           (row['tech_specialization'], row['salary_in_usd']),
-                           xytext=(5, 5), textcoords="offset points",
-                           fontsize=8, alpha=0.8)
+                        (row['tech_specialization']+0.05, row['salary_in_usd']), 
+                        fontsize=9, color='white')
             
-            # Add a trend line
-            z = np.polyfit(tech_data['tech_specialization'], tech_data['salary_in_usd'], 1)
+            # Add trend line
+            z = np.polyfit(scatter_data['tech_specialization'], scatter_data['salary_in_usd'], 1)
             p = np.poly1d(z)
-            ax.plot(tech_data['tech_specialization'], p(tech_data['tech_specialization']), 
-                   "--", color='#f1c40f', linewidth=2)
+            ax.plot(scatter_data['tech_specialization'], p(scatter_data['tech_specialization']), 
+                    linestyle='--', color='#FF5555', alpha=0.8, linewidth=2)
             
-            # Highlight high-specialization, high-salary area
-            ax.axvspan(8, 10, alpha=0.2, color='green')
-            ax.axvspan(1, 4, alpha=0.2, color='red')
-            
-            # Add annotations for regions
-            ax.text(9, df['salary_in_usd'].max()*0.8, "High Specialization\nPremium", 
-                   ha='center', color='white', fontsize=10, fontweight='bold',
-                   bbox=dict(boxstyle="round,pad=0.3", fc='green', alpha=0.3))
-            
-            ax.text(2.5, df['salary_in_usd'].max()*0.3, "Low Specialization\nDiscount", 
-                   ha='center', color='white', fontsize=10, fontweight='bold',
-                   bbox=dict(boxstyle="round,pad=0.3", fc='red', alpha=0.3))
+            # Add legend for the size
+            handles, labels = scatter.legend_elements(prop="sizes", alpha=0.6, num=4)
+            legend = ax.legend(handles, labels, loc="upper left", title="Demand Index")
+            plt.setp(legend.get_title(), color='white')
             
             # Customize graph
-            ax.set_xlabel('Technical Specialization Score', fontsize=12, fontweight='bold')
-            ax.set_ylabel('Average Salary (USD)', fontsize=12, fontweight='bold')
-            ax.set_title('Impact of Technical Specialization on Salary', fontsize=18, fontweight='bold', pad=20)
-            ax.grid(linestyle='--', alpha=0.3)
+            ax.set_title('Relationship Between Technical Specialization and Salary', fontsize=18, fontweight='bold', pad=20)
+            ax.set_xlabel('Technical Specialization Level', fontsize=14, fontweight='bold')
+            ax.set_ylabel('Median Salary (USD)', fontsize=14, fontweight='bold')
+            ax.grid(True, linestyle='--', alpha=0.3)
             
-            # Add legend for experience levels
-            legend_elements = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10, label=exp) 
-                              for exp, color in exp_colors.items()]
-            ax.legend(handles=legend_elements, title='Experience Level', loc='upper left')
+            # Add colorbar
+            cbar = plt.colorbar(scatter)
+            cbar.set_label('Demand Index', fontsize=12, fontweight='bold')
+            cbar.ax.yaxis.label.set_color('white')
+            cbar.ax.tick_params(colors='white')
             
             # Set background color to match Streamlit's darker theme
             fig.patch.set_facecolor('#2c3e50')
@@ -923,6 +919,17 @@ def visualizations_page():
             ax.title.set_color('white')
             for spine in ax.spines.values():
                 spine.set_color('#3498db')
+            
+            # Add explanatory text
+            ax.text(
+                0.5, -0.15, 
+                "This chart shows how technical specialization relates to salary across different roles.\nThe size and color of the dots indicate the relative demand for each job category.",
+                transform=ax.transAxes, 
+                ha='center', 
+                fontsize=11, 
+                color='white', 
+                alpha=0.8
+            )
             
             plt.tight_layout()
             st.pyplot(fig)
@@ -941,14 +948,14 @@ def visualizations_page():
                 
                 # Create horizontal bar chart for tech skills
                 bars = ax.barh(tech_counts.index, tech_counts.values, 
-                               color=plt.cm.viridis(np.linspace(0, 1, len(tech_counts))), 
-                               alpha=0.8, edgecolor='none')
+                            color=plt.cm.viridis(np.linspace(0, 1, len(tech_counts))), 
+                            alpha=0.8, edgecolor='none')
                 
                 # Add value annotations
                 for i, bar in enumerate(bars):
                     ax.text(bar.get_width() + 5, bar.get_y() + bar.get_height()/2, 
-                           f"{tech_counts.values[i]}", 
-                           va='center', fontweight='bold', color='white')
+                        f"{tech_counts.values[i]}", 
+                        va='center', fontweight='bold', color='white')
                 
                 # Customize graph
                 ax.set_xlabel('Frequency in Job Profiles', fontsize=12, fontweight='bold')
@@ -971,11 +978,11 @@ def visualizations_page():
         
         st.markdown("""
         #### Key Insights
-        * **Specialization premium**: Technical specialization correlates strongly with increased compensation
-        * **Diminishing returns**: Beyond a specialization score of 8, salary increases become less dramatic
-        * **Role impact**: Some roles (like ML Engineers) benefit more from specialization than others
-        * **Baseline requirement**: Even entry-level positions require a minimum technical foundation
-        * **Top technologies**: Python, SQL, and Cloud platforms continue to be the most valuable technical skills
+        * **Specialization and salary**: There's a clear correlation between technical specialization level and salary
+        * **High-demand roles**: Roles with higher technical specialization tend to have higher demand
+        * **Sweet spot**: Roles that combine technical specialization with management skills (like directors) achieve maximum salary benefit
+        * **Key technologies**: Python, SQL, and Cloud platforms are the most valued and in-demand technical skills
+        * **Compound effect**: Higher technical specialization attracts greater demand, which further drives up salaries
         """)
     
     # 5. AI IMPACT ANALYSIS
@@ -990,15 +997,15 @@ def visualizations_page():
             
             # Create bars with custom colors
             bars = ax.bar(ai_impact['ai_relationship'], ai_impact['median'], 
-                         color=plt.cm.plasma(np.linspace(0, 1, len(ai_impact))), 
-                         alpha=0.8, width=0.6)
+                        color=plt.cm.plasma(np.linspace(0, 1, len(ai_impact))), 
+                        alpha=0.8, width=0.6)
             
             # Add value labels
             for bar in bars:
                 height = bar.get_height()
                 ax.text(bar.get_x() + bar.get_width()/2., height + 5000,
-                       f'${height:,.0f}',
-                       ha='center', va='bottom', fontweight='bold', color='white')
+                    f'${height:,.0f}',
+                    ha='center', va='bottom', fontweight='bold', color='white')
             
             # Customize graph
             ax.set_xlabel('Relationship to AI', fontsize=12, fontweight='bold')
@@ -1019,46 +1026,113 @@ def visualizations_page():
             plt.tight_layout()
             st.pyplot(fig)
             
-            # Create a visualization of automation risk vs. salary
+            # Create a demand vs automation risk scatter plot (replacing the old horizontal bars)
             fig, ax = plt.subplots(figsize=(12, 8))
             
-            # Group data by job category
-            automation_data = df.groupby('job_category')[['automation_risk', 'salary_in_usd']].mean().reset_index()
-            automation_data = automation_data.sort_values('automation_risk')
+            # Group by job category
+            bubble_data = df.groupby('job_category').agg({
+                'demand_index': 'mean',
+                'automation_risk': 'mean',
+                'salary_in_usd': 'median',
+                'tech_specialization': 'mean'
+            }).reset_index()
             
-            # Create a color gradient based on automation risk
-            colors = plt.cm.RdYlGn_r(automation_data['automation_risk'])
+            # Create scatter with bubbles
+            scatter = ax.scatter(
+                bubble_data['demand_index'], 
+                bubble_data['automation_risk'],
+                s=bubble_data['salary_in_usd'] / 1000,
+                c=bubble_data['tech_specialization'],
+                cmap='viridis',
+                alpha=0.7,
+                edgecolors='white',
+                linewidth=1
+            )
             
-            # Create the horizontal bars
-            bars = ax.barh(automation_data['job_category'], automation_data['salary_in_usd'], 
-                          color=colors, alpha=0.8, height=0.6)
+            # Add bubble labels
+            for i, row in bubble_data.iterrows():
+                ax.annotate(
+                    row['job_category'], 
+                    (row['demand_index'], row['automation_risk']),
+                    xytext=(5, 5),
+                    textcoords='offset points',
+                    fontsize=9,
+                    color='white',
+                    bbox=dict(boxstyle="round,pad=0.3", fc="#2c3e50", ec="#3498db", alpha=0.7)
+                )
             
-            # Add risk annotations
-            for i, row in automation_data.iterrows():
-                # Add salary label
-                ax.text(row['salary_in_usd'] + 5000, i, f"${row['salary_in_usd']:,.0f}", 
-                       va='center', fontweight='bold', color='white')
-                
-                # Add risk percentage at the start of each bar
-                ax.text(2000, i, f"{row['automation_risk']*100:.0f}% risk", 
-                       va='center', ha='left', fontweight='bold', color='black')
+            # Divide chart into quadrants
+            x_middle = bubble_data['demand_index'].median()
+            y_middle = bubble_data['automation_risk'].median()
             
-            # Add a vertical line for average salary
-            avg_salary = df['salary_in_usd'].mean()
-            ax.axvline(x=avg_salary, color='#f1c40f', linestyle='--', linewidth=2)
-            ax.text(avg_salary + 5000, -0.8, f"Average: ${avg_salary:,.0f}", 
-                   color='#f1c40f', fontweight='bold')
+            ax.axhline(y=y_middle, color='gray', linestyle='--', alpha=0.5)
+            ax.axvline(x=x_middle, color='gray', linestyle='--', alpha=0.5)
+            
+            # Label quadrants
+            ax.text(
+                bubble_data['demand_index'].min() + 0.5, 
+                bubble_data['automation_risk'].max() - 0.1, 
+                "High Risk /\nLow Demand", 
+                ha='left', 
+                va='top',
+                fontsize=11,
+                color='white',
+                bbox=dict(boxstyle="round,pad=0.4", fc="darkred", ec="#3498db", alpha=0.7)
+            )
+            
+            ax.text(
+                bubble_data['demand_index'].max() - 0.5, 
+                bubble_data['automation_risk'].max() - 0.1, 
+                "High Risk /\nHigh Demand", 
+                ha='right', 
+                va='top',
+                fontsize=11,
+                color='white',
+                bbox=dict(boxstyle="round,pad=0.4", fc="darkorange", ec="#3498db", alpha=0.7)
+            )
+            
+            ax.text(
+                bubble_data['demand_index'].min() + 0.5, 
+                bubble_data['automation_risk'].min() + 0.1, 
+                "Low Risk /\nLow Demand", 
+                ha='left', 
+                va='bottom',
+                fontsize=11,
+                color='white',
+                bbox=dict(boxstyle="round,pad=0.4", fc="darkblue", ec="#3498db", alpha=0.7)
+            )
+            
+            ax.text(
+                bubble_data['demand_index'].max() - 0.5, 
+                bubble_data['automation_risk'].min() + 0.1, 
+                "Low Risk /\nHigh Demand", 
+                ha='right', 
+                va='bottom',
+                fontsize=11,
+                color='white',
+                bbox=dict(boxstyle="round,pad=0.4", fc="darkgreen", ec="#3498db", alpha=0.7)
+            )
+            
+            # Create custom legend for bubble sizes
+            handles, _ = scatter.legend_elements(prop="sizes", alpha=0.6, num=4)
+            
+            # Generate labels directly
+            salary_values = [100, 150, 200, 250]  # Representative values in thousands
+            custom_labels = [f"${val}K" for val in salary_values]
+            
+            legend1 = ax.legend(handles, custom_labels, loc="upper right", title="Median Salary")
+            plt.setp(legend1.get_title(), color='white')
             
             # Customize graph
-            ax.set_xlabel('Average Salary (USD)', fontsize=12, fontweight='bold')
-            ax.set_title('Automation Risk vs. Compensation by Role', fontsize=18, fontweight='bold', pad=20)
-            ax.grid(axis='x', linestyle='--', alpha=0.3)
+            ax.set_title('Relationship Between Demand and Automation Risk', fontsize=18, fontweight='bold', pad=20)
+            ax.set_xlabel('Demand Index', fontsize=14, fontweight='bold')
+            ax.set_ylabel('Automation Risk', fontsize=14, fontweight='bold')
+            ax.grid(True, linestyle='--', alpha=0.3)
             
-            # Add a colorbar for risk levels
-            sm = plt.cm.ScalarMappable(cmap=plt.cm.RdYlGn_r, norm=plt.Normalize(0, 1))
-            sm.set_array([])
-            cbar = plt.colorbar(sm, ax=ax)
-            cbar.set_label('Automation Risk', fontweight='bold', color='white')
+            # Add colorbar
+            cbar = plt.colorbar(scatter)
+            cbar.set_label('Technical Specialization', fontsize=12, fontweight='bold')
+            cbar.ax.yaxis.label.set_color('white')
             cbar.ax.tick_params(colors='white')
             
             # Set background color to match Streamlit's darker theme
@@ -1066,9 +1140,21 @@ def visualizations_page():
             ax.set_facecolor('#2c3e50')
             ax.tick_params(colors='white')
             ax.xaxis.label.set_color('white')
+            ax.yaxis.label.set_color('white')
             ax.title.set_color('white')
             for spine in ax.spines.values():
                 spine.set_color('#3498db')
+            
+            # Add explanatory text
+            ax.text(
+                0.5, -0.15, 
+                "This chart shows the relationship between demand and automation risk for different roles.\nBubble size represents salary level and color indicates technical specialization.",
+                transform=ax.transAxes, 
+                ha='center', 
+                fontsize=11, 
+                color='white', 
+                alpha=0.8
+            )
             
             plt.tight_layout()
             st.pyplot(fig)
@@ -1076,10 +1162,10 @@ def visualizations_page():
         st.markdown("""
         #### Key Insights
         * **AI creators** command the highest salaries, followed by those who apply or implement AI
-        * **Automation premium**: Roles with lower automation risk generally have higher compensation
-        * **Specialized skills**: Technical roles that apply AI/ML to domain-specific problems show strong salary resilience
-        * **Augmentation effect**: Roles that use AI as an augmentation tool show increased salary potential over time
-        * **Risk compensation**: Some high-automation-risk roles receive higher salaries as a form of risk premium
+        * **Quadrant analysis**: The most desirable roles are in the "Low Risk / High Demand" quadrant
+        * **Specialized skills**: Roles with higher technical specialization (brighter colors) tend to face lower automation risk
+        * **Salary protection**: Larger bubbles in high-risk areas indicate "risk premiums" for certain roles
+        * **Future-proof roles**: Data Scientists and ML Engineers combine high demand with relatively low automation risk
         """)
     
     # 6. WORK SETTING TRENDS
@@ -1207,54 +1293,107 @@ def visualizations_page():
     elif st.session_state.active_tab == "Work-Life Balance":
         if 'work_life_balance' in df.columns:
             # Create a bubble chart showing salary, work-life balance, and job category
-            fig, ax = plt.subplots(figsize=(12, 8))
-            
+            # Increase figure size to accommodate all elements
+            fig, ax = plt.subplots(figsize=(14, 10))
+
             # Prepare data
             wlb_data = df.groupby('job_category')[['salary_in_usd', 'work_life_balance']].mean().reset_index()
-            
+
             # Count number of professionals in each category
             job_counts = df['job_category'].value_counts()
             wlb_data['count'] = wlb_data['job_category'].map(job_counts)
-            
+
             # Create custom color palette
             colors = plt.cm.viridis(np.linspace(0, 1, len(wlb_data)))
-            
+
             # Create bubble chart
             scatter = ax.scatter(wlb_data['work_life_balance'], wlb_data['salary_in_usd'], 
                                 s=wlb_data['count']*2, c=colors, alpha=0.7, edgecolors='white')
-            
-            # Add labels for each bubble
+
+            # Add labels for each bubble - improved positioning
             for i, row in wlb_data.iterrows():
+                # Use different offsets based on position to prevent overlap
+                if row['work_life_balance'] < wlb_data['work_life_balance'].median():
+                    x_offset = -5
+                    ha = 'right'
+                else:
+                    x_offset = 5
+                    ha = 'left'
+                    
                 ax.annotate(row['job_category'], 
-                           (row['work_life_balance'], row['salary_in_usd']),
-                           xytext=(5, 5), textcoords="offset points",
-                           fontsize=9, fontweight='bold', color='white')
-            
+                        (row['work_life_balance'], row['salary_in_usd']),
+                        xytext=(x_offset, 5), textcoords="offset points",
+                        fontsize=9, fontweight='bold', color='white',
+                        ha=ha)
+
             # Add a best fit line
             z = np.polyfit(wlb_data['work_life_balance'], wlb_data['salary_in_usd'], 1)
             p = np.poly1d(z)
             ax.plot(wlb_data['work_life_balance'], p(wlb_data['work_life_balance']), 
-                   "--", color='#e74c3c', linewidth=2)
-            
-            # Highlight quadrants
-            ax.axhline(y=df['salary_in_usd'].mean(), color='white', linestyle='--', alpha=0.5)
-            ax.axvline(x=df['work_life_balance'].mean(), color='white', linestyle='--', alpha=0.5)
-            
-            # Add labels for quadrants
-            ax.text(df['work_life_balance'].min(), df['salary_in_usd'].max()*0.95, "High Stress\nHigh Pay", 
-                   ha='left', color='white', fontsize=10, fontweight='bold',
-                   bbox=dict(boxstyle="round,pad=0.3", fc='red', alpha=0.3))
-            
-            ax.text(df['work_life_balance'].max()*0.95, df['salary_in_usd'].max()*0.95, "Low Stress\nHigh Pay", 
-                   ha='right', color='white', fontsize=10, fontweight='bold',
-                   bbox=dict(boxstyle="round,pad=0.3", fc='green', alpha=0.3))
-            
+                "--", color='#e74c3c', linewidth=2)
+
+            # Highlight quadrants - using actual min/max of displayed data
+            median_salary = wlb_data['salary_in_usd'].median()
+            median_wlb = wlb_data['work_life_balance'].median()
+
+            ax.axhline(y=median_salary, color='white', linestyle='--', alpha=0.5)
+            ax.axvline(x=median_wlb, color='white', linestyle='--', alpha=0.5)
+
+            # Calculate actual plot boundaries with more space
+            min_wlb = wlb_data['work_life_balance'].min() * 0.92
+            max_wlb = wlb_data['work_life_balance'].max() * 1.08
+            min_salary = wlb_data['salary_in_usd'].min() * 0.92
+            max_salary = wlb_data['salary_in_usd'].max() * 1.08
+
+            # Set axis limits explicitly to ensure all content fits
+            ax.set_xlim(min_wlb, max_wlb)
+            ax.set_ylim(min_salary, max_salary)
+
+            # Add labels for quadrants - moved further toward corners to reduce overlap
+            # High Stress, High Pay (bottom left)
+            ax.text(min_wlb + (max_wlb - min_wlb) * 0.02, 
+                max_salary - (max_salary - min_salary) * 0.02,
+                "High Stress\nHigh Pay", 
+                ha='left', va='top',
+                color='white', fontsize=9, fontweight='bold',
+                bbox=dict(boxstyle="round,pad=0.3", fc='darkred', alpha=0.5))
+
+            # Low Stress, High Pay (bottom right)
+            ax.text(max_wlb - (max_wlb - min_wlb) * 0.02, 
+                max_salary - (max_salary - min_salary) * 0.02,
+                "Low Stress\nHigh Pay", 
+                ha='right', va='top',
+                color='white', fontsize=9, fontweight='bold',
+                bbox=dict(boxstyle="round,pad=0.3", fc='darkgreen', alpha=0.5))
+
+            # High Stress, Low Pay (top left)
+            ax.text(min_wlb + (max_wlb - min_wlb) * 0.02, 
+                min_salary + (max_salary - min_salary) * 0.02,
+                "High Stress\nLow Pay", 
+                ha='left', va='bottom',
+                color='white', fontsize=9, fontweight='bold',
+                bbox=dict(boxstyle="round,pad=0.3", fc='darkorange', alpha=0.5))
+
+            # Low Stress, Low Pay (top right)
+            ax.text(max_wlb - (max_wlb - min_wlb) * 0.02, 
+                min_salary + (max_salary - min_salary) * 0.02,
+                "Low Stress\nLow Pay", 
+                ha='right', va='bottom',
+                color='white', fontsize=9, fontweight='bold',
+                bbox=dict(boxstyle="round,pad=0.3", fc='darkblue', alpha=0.5))
+
             # Customize graph
             ax.set_xlabel('Work-Life Balance Score', fontsize=12, fontweight='bold')
             ax.set_ylabel('Average Salary (USD)', fontsize=12, fontweight='bold')
             ax.set_title('Salary vs. Work-Life Balance by Role', fontsize=18, fontweight='bold', pad=20)
             ax.grid(linestyle='--', alpha=0.3)
-            
+
+            # Move the legend to a better position to avoid overlap
+            handles, labels = scatter.legend_elements(prop="sizes", alpha=0.6, num=4)
+            legend = ax.legend(handles, labels, loc="center right", title="Number of Professionals", 
+                            bbox_to_anchor=(0.95, 0.5), framealpha=0.8)
+            plt.setp(legend.get_title(), color='white')
+
             # Set background color to match Streamlit's darker theme
             fig.patch.set_facecolor('#2c3e50')
             ax.set_facecolor('#2c3e50')
@@ -1264,8 +1403,10 @@ def visualizations_page():
             ax.title.set_color('white')
             for spine in ax.spines.values():
                 spine.set_color('#3498db')
-            
-            plt.tight_layout()
+
+            # Increase margins to give more space 
+            plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+
             st.pyplot(fig)
             
             # Create a chart comparing total compensation to base salary across roles
@@ -1276,7 +1417,11 @@ def visualizations_page():
                 total_comp_data['bonus_value'] = total_comp_data['total_compensation_estimate'] - total_comp_data['salary_in_usd']
                 total_comp_data = total_comp_data.sort_values('comp_ratio', ascending=False)
                 
-                fig, ax = plt.subplots(figsize=(12, 8))
+                # Limit to top 12 roles for better readability if there are many
+                if len(total_comp_data) > 12:
+                    total_comp_data = total_comp_data.head(12)
+                
+                fig, ax = plt.subplots(figsize=(14, 8))
                 
                 # Create the bars
                 x = np.arange(len(total_comp_data))
@@ -1284,12 +1429,12 @@ def visualizations_page():
                 
                 bars1 = ax.bar(x, total_comp_data['salary_in_usd'], width, label='Base Salary', color='#3498db')
                 bars2 = ax.bar(x, total_comp_data['bonus_value'], width, bottom=total_comp_data['salary_in_usd'], 
-                              label='Bonuses & Benefits', color='#f39c12')
+                            label='Bonuses & Benefits', color='#f39c12')
                 
                 # Add ratio labels
                 for i, row in total_comp_data.iterrows():
                     ax.text(i, row['total_compensation_estimate'] + 5000, 
-                           f"{row['comp_ratio']:.2f}x", ha='center', fontweight='bold', color='white')
+                        f"{row['comp_ratio']:.2f}x", ha='center', fontweight='bold', color='white')
                 
                 # Customize graph
                 ax.set_xlabel('Job Category', fontsize=12, fontweight='bold')
@@ -1310,7 +1455,9 @@ def visualizations_page():
                 for spine in ax.spines.values():
                     spine.set_color('#3498db')
                 
-                plt.tight_layout()
+                # Set margins explicitly
+                plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.3)
+                
                 st.pyplot(fig)
         
         st.markdown("""
