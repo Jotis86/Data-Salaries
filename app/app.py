@@ -1692,88 +1692,92 @@ def prediction_page():
     """)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Create main columns for form and results
-    col1, col2 = st.columns([1, 1])
+    # Create a tab-based interface for better organization
+    tab1, tab2 = st.tabs(["📝 Input Your Details", "💰 View Results"])
     
-    # Input form
-    with col1:
+    # Input form tab
+    with tab1:
+        # Key variables section
         st.markdown('<h2 class="section-header">Your Professional Profile</h2>', unsafe_allow_html=True)
         
-        # Key variables section
-        st.markdown('<div class="info-box">', unsafe_allow_html=True)
-        st.markdown('<h3 class="subsection-header">Primary Information</h3>', unsafe_allow_html=True)
-        st.info("These factors directly affect the model's prediction")
+        col1, col2 = st.columns(2)
         
-        job_category = st.selectbox(
-            "Job Category",
-            options=[
-                "Data Scientist", "ML Engineer", "Data Engineer", 
-                "Data Analyst", "Business Analyst", "Research Scientist", 
-                "Data Science Manager", "AI Engineer"
-            ]
-        )
+        with col1:
+            st.markdown('<div class="info-box">', unsafe_allow_html=True)
+            st.markdown('<h3 class="subsection-header">Primary Information</h3>', unsafe_allow_html=True)
+            st.info("These factors directly affect the model's prediction")
+            
+            job_category = st.selectbox(
+                "Job Category",
+                options=[
+                    "Data Scientist", "ML Engineer", "Data Engineer", 
+                    "Data Analyst", "Business Analyst", "Research Scientist", 
+                    "Data Science Manager", "AI Engineer"
+                ]
+            )
+            
+            experience_level = st.selectbox(
+                "Experience Level",
+                options=["Entry-Level", "Mid-Level", "Senior", "Executive"]
+            )
+            
+            region = st.selectbox(
+                "Company Region",
+                options=["North America", "Europe", "Asia", "South America", "Africa", "Oceania"]
+            )
+            
+            work_setting = st.selectbox(
+                "Work Setting",
+                options=["Remote", "Hybrid", "On-site"]
+            )
+            
+            company_sector = st.selectbox(
+                "Company Sector",
+                options=["Technology", "Finance", "Healthcare", "Retail", "Manufacturing", "Education", "Other"]
+            )
+            st.markdown('</div>', unsafe_allow_html=True)
         
-        experience_level = st.selectbox(
-            "Experience Level",
-            options=["Entry-Level", "Mid-Level", "Senior", "Executive"]
-        )
+        with col2:
+            # Additional details section
+            st.markdown('<div class="success-box">', unsafe_allow_html=True)
+            st.markdown('<h3 class="subsection-header">Additional Details</h3>', unsafe_allow_html=True)
+            st.info("These factors will refine the prediction and provide better insights")
+            
+            company_size = st.selectbox(
+                "Company Size",
+                options=["Small", "Medium", "Large"]
+            )
+            
+            employment_type = st.selectbox(
+                "Employment Type",
+                options=["Full-time", "Part-time", "Contract", "Freelance"]
+            )
+            
+            tech_specialization = st.slider(
+                "Technical Specialization",
+                min_value=1.0,
+                max_value=10.0,
+                value=7.0,
+                step=0.5,
+                help="Level of technical specialization (1-10)"
+            )
+            
+            english_level = st.slider(
+                "English Proficiency",
+                min_value=1.0,
+                max_value=10.0,
+                value=7.0,
+                step=0.5
+            )
+            st.markdown('</div>', unsafe_allow_html=True)
         
-        region = st.selectbox(
-            "Company Region",
-            options=["North America", "Europe", "Asia", "South America", "Africa", "Oceania"]
-        )
-        
-        work_setting = st.selectbox(
-            "Work Setting",
-            options=["Remote", "Hybrid", "On-site"]
-        )
-        
-        company_sector = st.selectbox(
-            "Company Sector",
-            options=["Technology", "Finance", "Healthcare", "Retail", "Manufacturing", "Education", "Other"]
-        )
+        # Submit button - centered and full width
+        st.markdown('<div style="text-align: center; margin-top: 20px;">', unsafe_allow_html=True)
+        predict_button = st.button("Calculate My Salary Estimate", type="primary", key="predict_salary", use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Additional details section
-        st.markdown('<div class="success-box">', unsafe_allow_html=True)
-        st.markdown('<h3 class="subsection-header">Additional Details</h3>', unsafe_allow_html=True)
-        st.info("These factors will refine the prediction and provide better insights")
-        
-        company_size = st.selectbox(
-            "Company Size",
-            options=["Small", "Medium", "Large"]
-        )
-        
-        employment_type = st.selectbox(
-            "Employment Type",
-            options=["Full-time", "Part-time", "Contract", "Freelance"]
-        )
-        
-        tech_specialization = st.slider(
-            "Technical Specialization",
-            min_value=1.0,
-            max_value=10.0,
-            value=7.0,
-            step=0.5,
-            help="Level of technical specialization (1-10)"
-        )
-        
-        english_level = st.slider(
-            "English Proficiency",
-            min_value=1.0,
-            max_value=10.0,
-            value=7.0,
-            step=0.5
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Submit button
-        predict_button = st.button("Calculate My Salary Estimate", type="primary", key="predict_salary")
     
-    # Results section (only shown after prediction)
-    with col2:
-        st.markdown('<h2 class="section-header">Your Salary Estimate</h2>', unsafe_allow_html=True)
-        
+    # Results tab
+    with tab2:
         if "results_ready" not in st.session_state:
             st.session_state.results_ready = False
         
@@ -1830,11 +1834,16 @@ def prediction_page():
         if st.session_state.results_ready:
             base_predicted_salary = st.session_state.base_salary
             adjusted_salary = st.session_state.adjusted_salary
+            job_category = st.session_state.job_category
+            experience_level = st.session_state.experience_level
+            region = st.session_state.region
+            tech_specialization = st.session_state.tech_specialization
+            english_level = st.session_state.english_level
             
-            # Main prediction result
-            st.markdown('<div class="metric-container">', unsafe_allow_html=True)
+            # Main prediction result - full width
+            st.markdown('<div class="metric-container" style="text-align: center; padding: 20px;">', unsafe_allow_html=True)
             st.markdown('<h3 class="subsection-header">Estimated Annual Salary</h3>', unsafe_allow_html=True)
-            st.markdown(f"<h1 style='color:#1976D2; text-align:center; font-size:3.5rem'>${adjusted_salary:,.2f}</h1>", unsafe_allow_html=True)
+            st.markdown(f"<h1 style='color:#1976D2; text-align:center; font-size:4rem'>${adjusted_salary:,.2f}</h1>", unsafe_allow_html=True)
             
             # Show adjustment info
             adjustment_pct = (adjusted_salary / base_predicted_salary - 1) * 100
@@ -1846,7 +1855,8 @@ def prediction_page():
                 st.info("Note: Business Analyst salaries are typically 15% lower than comparable Data Analyst positions.")
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # Additional metrics
+            # Additional metrics - 3 columns
+            st.markdown('<h3 class="subsection-header">Salary Breakdown</h3>', unsafe_allow_html=True)
             st.markdown('<div class="metric-container">', unsafe_allow_html=True)
             col1, col2, col3 = st.columns(3)
             
@@ -1905,68 +1915,82 @@ def prediction_page():
                 )
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # Tech stack visualization
-            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-            st.markdown('<h3 class="subsection-header">Technology Stack Analysis</h3>', unsafe_allow_html=True)
+            # Two visualizations side by side
+            st.markdown('<h3 class="subsection-header">Career Analytics</h3>', unsafe_allow_html=True)
+            vis_col1, vis_col2 = st.columns(2)
             
-            tech_fig = plot_tech_stack(job_category)
-            if tech_fig:
-                st.pyplot(tech_fig)
-                st.markdown(f"""
-                The chart above shows the key technologies and skills for your role as a **{job_category}**.
-                Mastering these skills, especially the top 3-4, can significantly increase your market value.
-                """)
-            else:
-                st.write("No technology stack information available for this role.")
-            st.markdown('</div>', unsafe_allow_html=True)
+            # Tech stack visualization
+            with vis_col1:
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.markdown('<h4 class="subsection-header">Technology Stack Analysis</h4>', unsafe_allow_html=True)
+                
+                tech_fig = plot_tech_stack(job_category)
+                if tech_fig:
+                    st.pyplot(tech_fig)
+                    st.markdown(f"""
+                    The chart shows key technologies for your role as a **{job_category}**.
+                    Mastering these top skills can increase your market value.
+                    """)
+                else:
+                    st.write("No technology stack information available for this role.")
+                st.markdown('</div>', unsafe_allow_html=True)
             
             # Salary growth trajectory
-            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-            st.markdown('<h3 class="subsection-header">5-Year Salary Projection</h3>', unsafe_allow_html=True)
+            with vis_col2:
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.markdown('<h4 class="subsection-header">5-Year Salary Projection</h4>', unsafe_allow_html=True)
+                
+                # Create salary projection data
+                years = np.arange(0, 6)
+                growth_rates = {
+                    "Entry-Level": 0.12,  # 12% annual growth
+                    "Mid-Level": 0.08,    # 8% annual growth
+                    "Senior": 0.05,       # 5% annual growth
+                    "Executive": 0.04     # 4% annual growth
+                }
+                
+                growth_rate = growth_rates.get(experience_level, 0.07)
+                
+                # Calculate projected salaries
+                projected_salaries = [adjusted_salary * (1 + growth_rate) ** year for year in years]
+                
+                # Create projection dataframe
+                projection_df = pd.DataFrame({
+                    'Year': [f"Current"] + [f"Year {y}" for y in years[1:]],
+                    'Salary': projected_salaries
+                })
+                
+                # Plot projection
+                fig3, ax3 = plt.subplots(figsize=(8, 4))
+                ax3 = sns.lineplot(x='Year', y='Salary', data=projection_df, marker='o', linewidth=2, color='#1976D2')
+                
+                # Add value labels
+                for i, val in enumerate(projected_salaries):
+                    ax3.text(i, val + 5000, f"${val:,.0f}", ha='center', fontsize=8)
+                
+                # Customize chart
+                ax3.set_title('Projected Salary Growth')
+                ax3.grid(True, linestyle='--', alpha=0.7)
+                
+                # Set background colors
+                fig3.patch.set_facecolor('#2c3e50')
+                ax3.set_facecolor('#2c3e50')
+                ax3.tick_params(colors='white')
+                ax3.xaxis.label.set_color('white')
+                ax3.yaxis.label.set_color('white')
+                ax3.title.set_color('white')
+                
+                st.pyplot(fig3)
+                
+                st.markdown(f"""
+                With an annual growth rate of **{growth_rate*100:.0f}%**, your salary could 
+                reach **${projected_salaries[-1]:,.0f}** in 5 years.
+                """)
+                st.markdown('</div>', unsafe_allow_html=True)
             
-            # Create salary projection data
-            years = np.arange(0, 6)
-            growth_rates = {
-                "Entry-Level": 0.12,  # 12% annual growth
-                "Mid-Level": 0.08,    # 8% annual growth
-                "Senior": 0.05,       # 5% annual growth
-                "Executive": 0.04     # 4% annual growth
-            }
-            
-            growth_rate = growth_rates.get(experience_level, 0.07)
-            
-            # Calculate projected salaries
-            projected_salaries = [adjusted_salary * (1 + growth_rate) ** year for year in years]
-            
-            # Create projection dataframe
-            projection_df = pd.DataFrame({
-                'Year': [f"Current"] + [f"Year {y}" for y in years[1:]],
-                'Salary': projected_salaries
-            })
-            
-            # Plot projection
-            fig3, ax3 = plt.subplots(figsize=(10, 4))
-            ax3 = sns.lineplot(x='Year', y='Salary', data=projection_df, marker='o', linewidth=2, color='#1976D2')
-            
-            # Add value labels
-            for i, val in enumerate(projected_salaries):
-                ax3.text(i, val + 5000, f"${val:,.0f}", ha='center')
-            
-            # Customize chart
-            ax3.set_title('Projected Salary Growth (Based on Industry Averages)')
-            ax3.grid(True, linestyle='--', alpha=0.7)
-            st.pyplot(fig3)
-            
-            st.markdown(f"""
-            With an estimated annual growth rate of **{growth_rate*100:.0f}%** for your experience level, 
-            your salary could reach **${projected_salaries[-1]:,.2f}** in 5 years if you maintain your 
-            current career trajectory.
-            """)
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Personalized recommendations
+            # Personalized recommendations - full width
+            st.markdown('<h3 class="subsection-header">Career Growth Strategy</h3>', unsafe_allow_html=True)
             st.markdown('<div class="success-box">', unsafe_allow_html=True)
-            st.markdown('<h3 class="subsection-header">Salary Growth Recommendations</h3>', unsafe_allow_html=True)
             
             recommendations = generate_recommendations(
                 job_category, 
@@ -1979,6 +2003,10 @@ def prediction_page():
             for rec in recommendations:
                 st.markdown(f"- {rec}")
             st.markdown('</div>', unsafe_allow_html=True)
+        
+        else:
+            # Message when no results are available
+            st.info("Complete the form in the 'Input Your Details' tab and click 'Calculate My Salary Estimate' to see your personalized salary prediction.")
 
 # ======= MAIN APP =======
 def main():
