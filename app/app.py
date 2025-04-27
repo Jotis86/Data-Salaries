@@ -345,34 +345,24 @@ def home_page():
             color: #1E3A8A;
         }
         
-        /* Feature cards */
-        .feature-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin: 1.5rem 0;
+        /* List styling */
+        .styled-list {
+            list-style-type: none;
+            padding-left: 0;
         }
-        .feature-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            flex: 1;
-            min-width: 200px;
-            border-left: 4px solid;
-            transition: transform 0.2s;
+        .styled-list li {
+            padding-left: 1.5rem;
+            position: relative;
+            margin-bottom: 0.7rem;
+            line-height: 1.5;
+            color: #333333; /* Ensuring dark text color */
         }
-        .feature-card:hover {
-            transform: translateY(-3px);
-        }
-        .visualize-card {
-            border-left-color: #3B82F6;
-        }
-        .predict-card {
-            border-left-color: #10B981;
-        }
-        .plan-card {
-            border-left-color: #F59E0B;
+        .styled-list li:before {
+            content: "•";
+            color: #3B82F6;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
         }
         
         /* Limitations section */
@@ -390,30 +380,14 @@ def home_page():
             color: #334155;
         }
         
-        /* List styling */
-        .styled-list {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .styled-list li {
-            padding-left: 1.5rem;
-            position: relative;
-            margin-bottom: 0.7rem;
-            line-height: 1.5;
-        }
-        .styled-list li:before {
-            content: "•";
-            color: #3B82F6;
-            font-weight: bold;
-            position: absolute;
-            left: 0;
+        /* Ensure all body text is visible against background */
+        p, h1, h2, h3, h4, h5, h6 {
+            color: #333333;
         }
         
-        /* Image container */
-        .img-container {
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        /* Only hero section text should be white */
+        .hero-container h1, .hero-container p {
+            color: white;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -433,76 +407,33 @@ def home_page():
     # About the app section
     st.markdown('<h2 class="custom-header">About This App</h2>', unsafe_allow_html=True)
     
-    col1, col2 = st.columns([3, 2])
+    st.markdown("""
+    <div class="info-card">
+        <div class="card-title">Why Use This Tool?</div>
+        <ul class="styled-list">
+            <li><strong>Estimate your market value</strong> based on role, experience, location, and other factors</li>
+            <li><strong>Visualize salary trends</strong> across different dimensions of the data science job market</li>
+            <li><strong>Discover insights</strong> that can help negotiate better compensation</li>
+            <li><strong>Identify strategies</strong> to increase earning potential in the data field</li>
+        </ul>
+        <p>The app uses machine learning to predict salaries based on real-world data from thousands
+        of data professionals across different regions, companies, and specializations.</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    with col1:
-        st.markdown("""
-        <div class="info-card">
-            <div class="card-title">Why Use This Tool?</div>
-            <ul class="styled-list">
-                <li><strong>Estimate your market value</strong> based on role, experience, location, and other factors</li>
-                <li><strong>Visualize salary trends</strong> across different dimensions of the data science job market</li>
-                <li><strong>Discover insights</strong> that can help negotiate better compensation</li>
-                <li><strong>Identify strategies</strong> to increase earning potential in the data field</li>
-            </ul>
-            <p>The app uses machine learning to predict salaries based on real-world data from thousands
-            of data professionals across different regions, companies, and specializations.</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        # Sample image with improved styling
-        st.markdown("""
-        <div class="img-container">
-            <img src="https://img.freepik.com/free-vector/annual-salary-concept-illustration_114360-5401.jpg" 
-                 alt="Salary analysis illustration" style="width:100%;">
-        </div>
-        <p style="text-align:center; margin-top:8px; color:#6B7280; font-size:0.9rem;">
-            Analyze your salary potential in the data science field
-        </p>
-        """, unsafe_allow_html=True)
-    
-    # How to use section
+    # How to use section - styled to match About section
     st.markdown('<h2 class="custom-header">How to Use This App</h2>', unsafe_allow_html=True)
     
     st.markdown("""
-    <div class="feature-container">
-        <div class="feature-card visualize-card">
-            <div style="font-size:2rem; margin-bottom:0.5rem;">📊</div>
-            <h3 style="margin-bottom:1rem; color:#1E3A8A;">Explore Visualizations</h3>
-            <p>Visit the <strong>Visualizations</strong> section to explore salary trends across:</p>
-            <ul class="styled-list">
-                <li>Job categories</li>
-                <li>Experience levels</li>
-                <li>Geographic regions</li>
-                <li>Industry sectors</li>
-                <li>Work settings (remote, hybrid, on-site)</li>
-            </ul>
-        </div>
-        
-        <div class="feature-card predict-card">
-            <div style="font-size:2rem; margin-bottom:0.5rem;">🧮</div>
-            <h3 style="margin-bottom:1rem; color:#065F46;">Get Salary Predictions</h3>
-            <p>Use the <strong>Prediction Tool</strong> to:</p>
-            <ul class="styled-list">
-                <li>Enter your professional profile</li>
-                <li>Get a personalized salary estimate</li>
-                <li>See how different factors impact your salary</li>
-                <li>Receive tailored recommendations</li>
-            </ul>
-        </div>
-        
-        <div class="feature-card plan-card">
-            <div style="font-size:2rem; margin-bottom:0.5rem;">📈</div>
-            <h3 style="margin-bottom:1rem; color:#92400E;">Plan Your Career</h3>
-            <p>Use the insights to:</p>
-            <ul class="styled-list">
-                <li>Benchmark your current compensation</li>
-                <li>Identify skills to develop</li>
-                <li>Plan your career progression</li>
-                <li>Prepare for salary negotiations</li>
-            </ul>
-        </div>
+    <div class="info-card">
+        <div class="card-title">Application Features</div>
+        <ul class="styled-list">
+            <li><strong>Visualizations Section:</strong> Explore salary trends across job categories, experience levels, geographic regions, industry sectors, and work settings</li>
+            <li><strong>Prediction Tool:</strong> Enter your professional profile to get a personalized salary estimate and see how different factors impact your compensation</li>
+            <li><strong>Career Planning:</strong> Use insights to benchmark your current compensation, identify skills to develop, and prepare for salary negotiations</li>
+            <li><strong>Detailed Analysis:</strong> View comprehensive charts and analytics about the data science job market</li>
+        </ul>
+        <p>Navigate between sections using the sidebar menu to make the most of all available features.</p>
     </div>
     """, unsafe_allow_html=True)
     
