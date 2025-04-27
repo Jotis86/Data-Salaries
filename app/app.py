@@ -63,6 +63,11 @@ with col1:
         "Región",
         options=["North America", "Europe", "Asia", "South America", "Africa", "Oceania"]
     )
+
+    residence_region = st.selectbox(
+    "Región de Residencia del Empleado",
+    options=["North America", "Europe", "Asia", "South America", "Africa", "Oceania"]
+    )
     
     work_setting = st.selectbox(
         "Modalidad de Trabajo",
@@ -160,6 +165,7 @@ with col2:
                 'company_size_desc': company_size,
                 'work_setting': work_setting,
                 'region': region,
+                'residence_region': residence_region,
                 'domestic_employment': True,  # Valor por defecto
                 'economic_period': 'Post-Pandemic',  # Valor por defecto
                 'role_maturity': 'Established',  # Valor por defecto
