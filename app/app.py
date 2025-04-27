@@ -69,87 +69,14 @@ def test_model_sensitivity(model):
         st.error(f"Error in sensitivity test: {e}")
         return False
 
-# Function for fallback predictions (if model fails)
-def get_simulated_prediction(
-    job_category, experience_level, region, work_setting, company_sector
-):
-    """Calculate a simulated salary based on key factors"""
-    
-    # Base salaries by job category
-    base_salaries = {
-        "Data Scientist": 95000,
-        "Senior Data Scientist": 130000,
-        "ML Engineer": 105000,
-        "Data Engineer": 100000,
-        "Data Analyst": 75000,
-        "Business Analyst": 70000,
-        "Research Scientist": 110000,
-        "Data Science Manager": 140000,
-        "AI Engineer": 115000
-    }
-    
-    # Multipliers by experience level
-    experience_multiplier = {
-        "Entry-Level": 0.7,
-        "Mid-Level": 1.0,
-        "Senior": 1.5,
-        "Executive": 2.2
-    }
-    
-    # Multipliers by region
-    region_multiplier = {
-        "North America": 1.2,
-        "Europe": 1.0,
-        "Asia": 0.7,
-        "South America": 0.6,
-        "Africa": 0.5,
-        "Oceania": 1.1
-    }
-    
-    # Multipliers by sector
-    sector_multiplier = {
-        "Technology": 1.1,
-        "Finance": 1.15,
-        "Healthcare": 1.05,
-        "Retail": 0.9,
-        "Manufacturing": 0.95,
-        "Education": 0.85,
-        "Other": 1.0
-    }
-    
-    # Multiplier by work setting
-    work_setting_multiplier = {
-        "Remote": 1.05,
-        "Hybrid": 1.0,
-        "On-site": 0.95
-    }
-    
-    # Calculate base salary
-    if job_category in base_salaries:
-        base = base_salaries[job_category]
-    else:
-        base = 90000  # Default value
-    
-    # Apply multipliers
-    exp_mult = experience_multiplier.get(experience_level, 1.0)
-    reg_mult = region_multiplier.get(region, 1.0)
-    sec_mult = sector_multiplier.get(company_sector, 1.0)
-    work_mult = work_setting_multiplier.get(work_setting, 1.0)
-    
-    # Calculate final salary
-    salary = base * exp_mult * reg_mult * sec_mult * work_mult
-    
-    # Add variability (±5%)
-    import random
-    random_factor = random.uniform(0.95, 1.05)
-    salary *= random_factor
-    
-    return salary
-
 # Function to adjust base salary using additional factors
-def adjust_salary_with_details(base_salary, tech_specialization, english_level, company_size, employment_type):
+def adjust_salary_with_details(base_salary, job_category, tech_specialization, english_level, company_size, employment_type):
     """Adjust the base salary prediction using additional factors"""
     adjusted_salary = base_salary
+    
+    # Apply Business Analyst rule (15% less than Data Analyst)
+    if job_category == "Business Analyst":
+        adjusted_salary *= 0.85  # Business Analysts earn 15% less than Data Analysts
     
     # Technical specialization adjustment
     if tech_specialization <= 3:
@@ -227,6 +154,8 @@ def generate_recommendations(job_category, experience_level, tech_specialization
         recommendations.append("⚙️ Cloud certifications (AWS, Azure, GCP) can significantly increase your market value.")
     elif job_category == "Data Analyst":
         recommendations.append("📊 Developing programming skills in Python can help transition to higher-paying Data Scientist roles.")
+    elif job_category == "Business Analyst":
+        recommendations.append("📊 Developing technical skills like SQL proficiency and data visualization can help bridge the salary gap with Data Analysts.")
     
     return recommendations
 
@@ -282,9 +211,12 @@ Complete the form below to get a personalized salary estimate.
 # Verify model silently
 if model_loaded:
     use_simulation = not test_model_sensitivity(model)
+    if use_simulation:
+        st.error("Model validation failed. Please try again or contact support.")
+        st.stop()
 else:
-    use_simulation = True
-    st.warning("⚠️ Model not available. Using fallback prediction system.")
+    st.error("Model could not be loaded. Please check the model file.")
+    st.stop()
 
 # Create main columns
 col1, col2 = st.columns([1, 1])
@@ -363,44 +295,39 @@ with col2:
     
     # Prediction button
     if st.button("Calculate Estimated Salary", type="primary"):
-        # Calculate fallback prediction as backup
-        simulated_salary = get_simulated_prediction(
-            job_category, experience_level, region, 
-            work_setting, company_sector
-        )
-        
-        if model_loaded and not use_simulation:
-            try:
-                # Prepare data for the simple model (key variables only)
-                input_data = {
-                    'job_category': job_category,
-                    'experience_level_desc': experience_level,
-                    'region': region,
-                    'work_setting': work_setting,
-                    'company_sector': company_sector
-                }
-                
-                # Create DataFrame
-                input_df = pd.DataFrame([input_data])
-                
-                # Make prediction
-                base_predicted_salary = model.predict(input_df)[0]
-                
-                # Verify that the prediction is reasonable
-                if base_predicted_salary < 10000 or base_predicted_salary > 500000:
-                    st.warning(f"⚠️ Model prediction (${base_predicted_salary:,.2f}) seems out of range. Using fallback prediction.")
-                    base_predicted_salary = simulated_salary
-                
-            except Exception as e:
-                st.error(f"Error making prediction: {e}")
-                st.write("Using fallback prediction due to error.")
-                base_predicted_salary = simulated_salary
-        else:
-            base_predicted_salary = simulated_salary
+        try:
+            # Prepare data for the model (key variables only)
+            input_data = {
+                'job_category': job_category,
+                'experience_level_desc': experience_level,
+                'region': region,
+                'work_setting': work_setting,
+                'company_sector': company_sector
+            }
+            
+            # Create DataFrame
+            input_df = pd.DataFrame([input_data])
+            
+            # Make prediction
+            base_predicted_salary = model.predict(input_df)[0]
+            
+            # Verify that the prediction is reasonable
+            if base_predicted_salary < 10000:
+                st.warning(f"⚠️ Model prediction (${base_predicted_salary:,.2f}) seems too low. Adjusting to minimum threshold.")
+                base_predicted_salary = 50000  # Minimum reasonable salary
+            elif base_predicted_salary > 500000:
+                st.warning(f"⚠️ Model prediction (${base_predicted_salary:,.2f}) seems too high. Adjusting to maximum threshold.")
+                base_predicted_salary = 300000  # Maximum reasonable salary
+            
+        except Exception as e:
+            st.error(f"Error making prediction: {e}")
+            st.error("Unable to generate prediction. Please try again or contact support.")
+            st.stop()  # Stop execution
         
         # Adjust salary using additional factors
         adjusted_salary = adjust_salary_with_details(
             base_predicted_salary, 
+            job_category,
             tech_specialization, 
             english_level, 
             company_size, 
@@ -425,6 +352,9 @@ with col2:
         adjustment_text = "increase" if adjustment_pct >= 0 else "decrease"
         
         st.info(f"Your profile details resulted in a {abs(adjustment_pct):.1f}% {adjustment_text} from the base prediction.")
+        
+        if job_category == "Business Analyst":
+            st.info("Note: Business Analyst salaries are typically 15% lower than comparable Data Analyst positions.")
         
         # Additional metrics calculated with rules
         col_metrics1, col_metrics2, col_metrics3 = st.columns(3)
@@ -568,7 +498,7 @@ with col2:
                 {"North America": 0.9, "Europe": 0.7, "Asia": 0.5, "South America": 0.4, "Africa": 0.3, "Oceania": 0.8}[region],
                 {"Technology": 0.8, "Finance": 0.85, "Healthcare": 0.7, "Retail": 0.6, "Manufacturing": 0.65, "Education": 0.5, "Other": 0.6}[company_sector],
                 {"Remote": 0.7, "Hybrid": 0.6, "On-site": 0.5}[work_setting],
-                {"Data Scientist": 0.8, "ML Engineer": 0.85, "Data Engineer": 0.75, "Data Analyst": 0.6, "Business Analyst": 0.55, "Research Scientist": 0.9, "Data Science Manager": 0.95, "AI Engineer": 0.85}.get(job_category, 0.7)
+                {"Data Scientist": 0.8, "ML Engineer": 0.85, "Data Engineer": 0.75, "Data Analyst": 0.6, "Business Analyst": 0.5, "Research Scientist": 0.9, "Data Science Manager": 0.95, "AI Engineer": 0.85}.get(job_category, 0.7)
             ]
         }
         
