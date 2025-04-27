@@ -442,7 +442,9 @@ def visualizations_page():
     @st.cache_data
     def load_real_data():
         try:
-            return pd.read_csv('clean_salary_data.csv')
+            # Try to load the data file from the same directory as the app
+            data_path = os.path.join(os.path.dirname(__file__), "clean_salary_data.csv")
+            return pd.read_csv(data_path)
         except:
             st.error("Could not load clean_salary_data.csv. Using sample data instead.")
             return load_sample_data()
