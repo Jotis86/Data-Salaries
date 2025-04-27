@@ -98,13 +98,9 @@ def load_sample_data():
 def load_model():
     """Load the prediction model"""
     try:
-        model_path = 'simple_salary_model.pkl'
-        if not os.path.exists(model_path):
-            return None
-            
+        model_path = os.path.join(os.path.dirname(__file__), "simple_salary_model.pkl")
         with open(model_path, 'rb') as file:
             model = pickle.load(file)
-        
         return model
     except:
         return None
