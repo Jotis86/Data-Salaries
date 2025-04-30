@@ -1745,7 +1745,7 @@ def prediction_page():
             
             region = st.selectbox(
                 "Company Region",
-                options=["North America", "Europe", "Asia", "South America", "Africa", "Oceania"]
+                options=["Europe", "North America", "Asia", "South America", "Africa", "Oceania"]
             )
             
             work_setting = st.selectbox(
@@ -1755,7 +1755,7 @@ def prediction_page():
             
             company_sector = st.selectbox(
                 "Company Sector",
-                options=["Technology", "Finance", "Healthcare", "Retail", "Manufacturing", "Education", "Other"]
+                options=["Finance", "Technology", "Healthcare", "Retail", "Manufacturing", "Education", "Other"]
             )
             st.markdown('</div>', unsafe_allow_html=True)
         
