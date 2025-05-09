@@ -468,7 +468,7 @@ def home_page():
     st.markdown('<h2 class="custom-header" style="color: #3B82F6 !important;">About This App</h2>', unsafe_allow_html=True)
     
     st.markdown("""
-    <div class="info-card">
+    <div class="limitations-container">
         <div class="card-title">Why Use This Tool?</div>
         <ul class="styled-list">
             <li><strong>Estimate your market value</strong> based on role, experience, location, and other factors</li>
@@ -485,7 +485,7 @@ def home_page():
     st.markdown('<h2 class="custom-header" style="color: #3B82F6 !important;">How to Use This App</h2>', unsafe_allow_html=True)
     
     st.markdown("""
-    <div class="info-card">
+    <div class="limitations-container">
         <div class="card-title">Application Features</div>
         <ul class="styled-list">
             <li><strong>Visualizations Section:</strong> Explore salary trends across job categories, experience levels, geographic regions, industry sectors, and work settings</li>
