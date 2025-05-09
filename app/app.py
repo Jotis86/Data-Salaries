@@ -502,7 +502,7 @@ def home_page():
     
     st.markdown("""
     <div class="limitations-container">
-        <h3 class="limitations-title">Important Notes About This Tool</h3>
+        <div class="card-title">Important Notes About This Tool</div>
         <ul class="styled-list">
             <li>The predictions are based on a machine learning model trained on salary data from various sources</li>
             <li>The model considers key factors like job role, experience level, region, company sector, and more</li>
