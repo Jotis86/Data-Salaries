@@ -268,10 +268,10 @@ def plot_tech_stack(job_category):
 # ======= PAGE FUNCTIONS =======
 def home_page():
     """Display the home page content"""
-    # Custom CSS for enhanced styling with theme-responsive colors
+    # Custom CSS with theme-responsive styling
     st.markdown("""
     <style>
-        /* Hero section styling */
+        /* Hero section styling - same for both themes */
         .hero-container {
             background: linear-gradient(135deg, #1E88E5 0%, #0D47A1 100%);
             color: white;
@@ -293,7 +293,7 @@ def home_page():
             line-height: 1.6;
         }
         
-        /* Section headers - theme responsive */
+        /* Section headers */
         .custom-header {
             font-size: 1.8rem !important;
             font-weight: 700;
@@ -303,96 +303,46 @@ def home_page():
             border-bottom: 2px solid #E5E7EB;
         }
         
-        /* Light theme - dark text for headers */
-        .light-mode .custom-header {
-            color: #1E3A8A;
-        }
-        
-        /* Dark theme - lighter text for headers */
-        .dark-mode .custom-header {
-            color: #90CAF9;
-        }
-        
-        /* Card styling - theme responsive */
+        /* Card styling */
         .card-container {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             margin-bottom: 2rem;
         }
-        
-        /* Light theme card */
-        .light-mode .info-card {
-            background-color: #f8f9fa;
+        .info-card {
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             padding: 1.5rem;
             transition: transform 0.2s, box-shadow 0.2s;
             flex: 1;
             min-width: 250px;
             border-top: 5px solid #3B82F6;
         }
-        
-        /* Dark theme card */
-        .dark-mode .info-card {
-            background-color: #1E1E1E;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            padding: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-            flex: 1;
-            min-width: 250px;
-            border-top: 5px solid #3B82F6;
-        }
-        
         .info-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
         }
-        
         .card-icon {
             font-size: 2rem;
             margin-bottom: 1rem;
             color: #3B82F6;
         }
-        
-        /* Card title - theme responsive */
-        .light-mode .card-title {
+        .card-title {
             font-size: 1.3rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            color: #1E3A8A;
         }
         
-        .dark-mode .card-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: #90CAF9;
-        }
-        
-        /* List styling - theme responsive */
+        /* List styling */
         .styled-list {
             list-style-type: none;
             padding-left: 0;
         }
-        
-        .light-mode .styled-list li {
+        .styled-list li {
             padding-left: 1.5rem;
             position: relative;
             margin-bottom: 0.7rem;
             line-height: 1.5;
-            color: #333333;
         }
-        
-        .dark-mode .styled-list li {
-            padding-left: 1.5rem;
-            position: relative;
-            margin-bottom: 0.7rem;
-            line-height: 1.5;
-            color: #e0e0e0;
-        }
-        
         .styled-list li:before {
             content: "•";
             color: #3B82F6;
@@ -401,62 +351,83 @@ def home_page():
             left: 0;
         }
         
-        /* Limitations section - theme responsive */
-        .light-mode .limitations-container {
-            background-color: #E8EAF6;
+        /* Limitations section */
+        .limitations-container {
             border-radius: 8px;
             padding: 1.5rem;
-            border-left: 4px solid #5C6BC0;
             margin: 1.5rem 0;
         }
-        
-        .dark-mode .limitations-container {
-            background-color: #1A237E;
-            background-opacity: 0.2;
-            border-radius: 8px;
-            padding: 1.5rem;
-            border-left: 4px solid #7986CB;
-            margin: 1.5rem 0;
-        }
-        
-        /* Limitations title - theme responsive */
-        .light-mode .limitations-title {
+        .limitations-title {
             font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 1rem;
+        }
+        
+        /* Theme-specific styles */
+        /* Light theme */
+        .stApp[data-theme="light"] .custom-header {
+            color: #1E3A8A;
+        }
+        .stApp[data-theme="light"] .info-card {
+            background-color: #f8f9fa;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .stApp[data-theme="light"] .info-card:hover {
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        .stApp[data-theme="light"] .card-title {
+            color: #1E3A8A;
+        }
+        .stApp[data-theme="light"] .styled-list li {
+            color: #333333;
+        }
+        .stApp[data-theme="light"] .limitations-container {
+            background-color: #E8EAF6;
+            border-left: 4px solid #5C6BC0;
+        }
+        .stApp[data-theme="light"] .limitations-title {
             color: #303F9F;
         }
-        
-        .dark-mode .limitations-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #C5CAE9;
-        }
-        
-        /* Default text colors - theme responsive */
-        .light-mode p, .light-mode li {
+        .stApp[data-theme="light"] p {
             color: #333333;
         }
         
-        .dark-mode p, .dark-mode li {
+        /* Dark theme */
+        .stApp[data-theme="dark"] .custom-header {
+            color: #90CAF9;
+        }
+        .stApp[data-theme="dark"] .info-card {
+            background-color: #1E1E1E;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .stApp[data-theme="dark"] .info-card:hover {
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        .stApp[data-theme="dark"] .card-title {
+            color: #90CAF9;
+        }
+        .stApp[data-theme="dark"] .styled-list li {
+            color: #e0e0e0;
+        }
+        .stApp[data-theme="dark"] .limitations-container {
+            background-color: #1A237E;
+            border-left: 4px solid #7986CB;
+        }
+        .stApp[data-theme="dark"] .limitations-title {
+            color: #C5CAE9;
+        }
+        .stApp[data-theme="dark"] p {
             color: #e0e0e0;
         }
         
-        /* Only hero section text should be white in both themes */
+        /* Always white for hero section */
         .hero-container h1, .hero-container p {
             color: white !important;
         }
-        
-        /* Theme detection */
-        .stApp[data-theme="light"] .light-mode { display: block; }
-        .stApp[data-theme="light"] .dark-mode { display: none; }
-        .stApp[data-theme="dark"] .light-mode { display: none; }
-        .stApp[data-theme="dark"] .dark-mode { display: block; }
     </style>
     """, unsafe_allow_html=True)
     
-    # Hero section (same for both themes)
+    # Hero section
     st.markdown("""
     <div class="hero-container">
         <h1 class="hero-title">Data Science Salary Predictor</h1>
@@ -468,108 +439,51 @@ def home_page():
     </div>
     """, unsafe_allow_html=True)
     
-    # About the app section - for both light and dark themes
+    # About the app section
     st.markdown('<h2 class="custom-header">About This App</h2>', unsafe_allow_html=True)
     
-    # Light theme version
     st.markdown("""
-    <div class="light-mode">
-        <div class="info-card">
-            <div class="card-title">Why Use This Tool?</div>
-            <ul class="styled-list">
-                <li><strong>Estimate your market value</strong> based on role, experience, location, and other factors</li>
-                <li><strong>Visualize salary trends</strong> across different dimensions of the data science job market</li>
-                <li><strong>Discover insights</strong> that can help negotiate better compensation</li>
-                <li><strong>Identify strategies</strong> to increase earning potential in the data field</li>
-            </ul>
-            <p>The app uses machine learning to predict salaries based on real-world data from thousands
-            of data professionals across different regions, companies, and specializations.</p>
-        </div>
+    <div class="info-card">
+        <div class="card-title">Why Use This Tool?</div>
+        <ul class="styled-list">
+            <li><strong>Estimate your market value</strong> based on role, experience, location, and other factors</li>
+            <li><strong>Visualize salary trends</strong> across different dimensions of the data science job market</li>
+            <li><strong>Discover insights</strong> that can help negotiate better compensation</li>
+            <li><strong>Identify strategies</strong> to increase earning potential in the data field</li>
+        </ul>
+        <p>The app uses machine learning to predict salaries based on real-world data from thousands
+        of data professionals across different regions, companies, and specializations.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Dark theme version
-    st.markdown("""
-    <div class="dark-mode">
-        <div class="info-card">
-            <div class="card-title">Why Use This Tool?</div>
-            <ul class="styled-list">
-                <li><strong>Estimate your market value</strong> based on role, experience, location, and other factors</li>
-                <li><strong>Visualize salary trends</strong> across different dimensions of the data science job market</li>
-                <li><strong>Discover insights</strong> that can help negotiate better compensation</li>
-                <li><strong>Identify strategies</strong> to increase earning potential in the data field</li>
-            </ul>
-            <p>The app uses machine learning to predict salaries based on real-world data from thousands
-            of data professionals across different regions, companies, and specializations.</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # How to use section - for both themes
+    # How to use section
     st.markdown('<h2 class="custom-header">How to Use This App</h2>', unsafe_allow_html=True)
     
-    # Light theme version
     st.markdown("""
-    <div class="light-mode">
-        <div class="info-card">
-            <div class="card-title">Application Features</div>
-            <ul class="styled-list">
-                <li><strong>Visualizations Section:</strong> Explore salary trends across job categories, experience levels, geographic regions, industry sectors, and work settings</li>
-                <li><strong>Prediction Tool:</strong> Enter your professional profile to get a personalized salary estimate and see how different factors impact your compensation</li>
-                <li><strong>Career Planning:</strong> Use insights to benchmark your current compensation, identify skills to develop, and prepare for salary negotiations</li>
-                <li><strong>Detailed Analysis:</strong> View comprehensive charts and analytics about the data science job market</li>
-            </ul>
-            <p>Navigate between sections using the sidebar menu to make the most of all available features.</p>
-        </div>
+    <div class="info-card">
+        <div class="card-title">Application Features</div>
+        <ul class="styled-list">
+            <li><strong>Visualizations Section:</strong> Explore salary trends across job categories, experience levels, geographic regions, industry sectors, and work settings</li>
+            <li><strong>Prediction Tool:</strong> Enter your professional profile to get a personalized salary estimate and see how different factors impact your compensation</li>
+            <li><strong>Career Planning:</strong> Use insights to benchmark your current compensation, identify skills to develop, and prepare for salary negotiations</li>
+            <li><strong>Detailed Analysis:</strong> View comprehensive charts and analytics about the data science job market</li>
+        </ul>
+        <p>Navigate between sections using the sidebar menu to make the most of all available features.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Dark theme version
-    st.markdown("""
-    <div class="dark-mode">
-        <div class="info-card">
-            <div class="card-title">Application Features</div>
-            <ul class="styled-list">
-                <li><strong>Visualizations Section:</strong> Explore salary trends across job categories, experience levels, geographic regions, industry sectors, and work settings</li>
-                <li><strong>Prediction Tool:</strong> Enter your professional profile to get a personalized salary estimate and see how different factors impact your compensation</li>
-                <li><strong>Career Planning:</strong> Use insights to benchmark your current compensation, identify skills to develop, and prepare for salary negotiations</li>
-                <li><strong>Detailed Analysis:</strong> View comprehensive charts and analytics about the data science job market</li>
-            </ul>
-            <p>Navigate between sections using the sidebar menu to make the most of all available features.</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Data sources and limitations - for both themes
+    # Data sources and limitations
     st.markdown('<h2 class="custom-header">Data Sources & Limitations</h2>', unsafe_allow_html=True)
     
-    # Light theme version
     st.markdown("""
-    <div class="light-mode">
-        <div class="limitations-container">
-            <h3 class="limitations-title">Important Notes About This Tool</h3>
-            <ul class="styled-list">
-                <li>The predictions are based on a machine learning model trained on salary data from various sources</li>
-                <li>The model considers key factors like job role, experience level, region, company sector, and more</li>
-                <li>Remember that predictions are estimates and actual salaries may vary based on specific circumstances</li>
-                <li>The tool doesn't account for all possible factors that might influence individual compensation</li>
-            </ul>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Dark theme version
-    st.markdown("""
-    <div class="dark-mode">
-        <div class="limitations-container">
-            <h3 class="limitations-title">Important Notes About This Tool</h3>
-            <ul class="styled-list">
-                <li>The predictions are based on a machine learning model trained on salary data from various sources</li>
-                <li>The model considers key factors like job role, experience level, region, company sector, and more</li>
-                <li>Remember that predictions are estimates and actual salaries may vary based on specific circumstances</li>
-                <li>The tool doesn't account for all possible factors that might influence individual compensation</li>
-            </ul>
-        </div>
+    <div class="limitations-container">
+        <h3 class="limitations-title">Important Notes About This Tool</h3>
+        <ul class="styled-list">
+            <li>The predictions are based on a machine learning model trained on salary data from various sources</li>
+            <li>The model considers key factors like job role, experience level, region, company sector, and more</li>
+            <li>Remember that predictions are estimates and actual salaries may vary based on specific circumstances</li>
+            <li>The tool doesn't account for all possible factors that might influence individual compensation</li>
+        </ul>
     </div>
     """, unsafe_allow_html=True)
     
