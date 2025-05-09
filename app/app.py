@@ -2111,120 +2111,77 @@ def prediction_page():
 
 # ======= MAIN APP =======
 def main():
-    # Apply unified CSS with WHITE text for better visibility on dark backgrounds
+    # CSS adaptativo con detección de tema
     st.markdown("""
     <style>
-        /* Base text and background colors for dark theme compatibility */
-        body {
+        /* Estilos compartidos */
+        .hero-container {
+            padding: 2rem !important;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        /* Tema claro */
+        .stApp[data-theme="light"] {
+            /* Texto oscuro sobre fondo claro */
+            color: #333333 !important;
+        }
+        .stApp[data-theme="light"] p, 
+        .stApp[data-theme="light"] h1, 
+        .stApp[data-theme="light"] h2, 
+        .stApp[data-theme="light"] h3, 
+        .stApp[data-theme="light"] li, 
+        .stApp[data-theme="light"] span {
+            color: #333333 !important;
+        }
+        .stApp[data-theme="light"] .chart-container, 
+        .stApp[data-theme="light"] .info-card,
+        .stApp[data-theme="light"] .limitations-container {
+            background-color: #f8f9fa !important;
+            border: 1px solid #dee2e6 !important;
+            color: #333333 !important;
+        }
+        .stApp[data-theme="light"] .hero-container {
+            background: linear-gradient(135deg, #3498db 0%, #1a5276 100%) !important;
+        }
+        .stApp[data-theme="light"] .section-header {
+            color: #1E3A8A !important;
+        }
+        .stApp[data-theme="light"] .styled-list li:before {
+            color: #3498db !important;
+        }
+        
+        /* Tema oscuro (mantener los estilos actuales) */
+        .stApp[data-theme="dark"] body {
             color: #ffffff !important;
             background-color: #1e1e1e !important;
         }
-        
-        /* Force ALL text elements to have white color for visibility */
-        p, h1, h2, h3, h4, h5, h6, li, span, div, label, .stMarkdown, 
-        .stText, [data-testid="stVerticalBlock"] p {
+        .stApp[data-theme="dark"] p, 
+        .stApp[data-theme="dark"] h1, 
+        .stApp[data-theme="dark"] h2, 
+        .stApp[data-theme="dark"] h3, 
+        .stApp[data-theme="dark"] li, 
+        .stApp[data-theme="dark"] span {
             color: #ffffff !important;
-            font-weight: 500 !important;
         }
-        
-        /* Fix sidebar styling */
-        [data-testid="stSidebar"], .css-1d391kg, .css-1lcbmhc {
-            background-color: #2c3e50 !important;
-        }
-        
-        /* Make sidebar headers bold and very visible */
-        [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, 
-        [data-testid="stSidebar"] h3, [data-testid="stSidebar"] .stTitle {
-            color: #3498db !important;
-            font-weight: 700 !important;
-        }
-        
-        /* Make sidebar paragraphs visible */
-        [data-testid="stSidebar"] p, [data-testid="stSidebar"] li {
-            color: #ffffff !important;
-            font-weight: 500 !important;
-        }
-        
-        /* Prominent radio buttons */
-        .stRadio > div {
-            padding: 10px 0 !important;
-        }
-        .stRadio label {
-            background-color: transparent !important;
-            color: #ffffff !important;
-            font-weight: 500 !important;
-            padding: 8px !important;
-            border-radius: 4px !important;
-        }
-        .stRadio label:hover {
-            background-color: rgba(52, 152, 219, 0.3) !important;
-        }
-        .stRadio label[data-baseweb="radio"] input:checked + span {
-            background-color: #3498db !important;
-            border-color: #3498db !important;
-        }
-        
-        /* Style headings throughout the app */
-        .main-header {
-            color: #3498db !important;
-            font-size: 2.5rem !important;
-            font-weight: 800 !important;
-        }
-        .section-header {
-            color: #ffffff !important;
-            font-size: 1.8rem !important;
-            font-weight: 700 !important;
-        }
-        .subsection-header {
-            color: #ecf0f1 !important;
-            font-size: 1.3rem !important;
-            font-weight: 650 !important;
-        }
-        
-        /* Container backgrounds with dark theme */
-        .chart-container, .metric-container, .info-card, .info-box, 
-        .success-box, .warning-box, .error-box, .limitations-container {
+        .stApp[data-theme="dark"] .chart-container, 
+        .stApp[data-theme="dark"] .info-card,
+        .stApp[data-theme="dark"] .limitations-container {
             background-color: #2c3e50 !important;
             color: #ffffff !important;
             border: 1px solid #34495e !important;
-            border-radius: 8px !important;
-            padding: 15px !important;
         }
-        
-        /* Ensure list items are visible */
-        .styled-list li {
-            color: #ffffff !important;
-            font-weight: 500 !important;
-            margin-bottom: 10px !important;
-        }
-        .styled-list li:before {
-            color: #3498db !important;
-        }
-        
-        /* Alert boxes */
-        .stAlert {
-            background-color: #2c3e50 !important;
-            border: 1px solid #3498db !important;
-        }
-        .stAlert p, .stAlert div {
-            color: #ffffff !important;
-            font-weight: 500 !important;
-        }
-        
-        /* Hero section */
-        .hero-container {
+        .stApp[data-theme="dark"] .hero-container {
             background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%) !important;
-            padding: 2rem !important;
         }
+        
+        /* Otros estilos que se mantienen igual */
         .hero-container h1, .hero-title {
             color: white !important;
             font-weight: 800 !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
         }
         .hero-container p, .hero-text {
             color: white !important;
-            font-weight: 500 !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
         }
     </style>
     """, unsafe_allow_html=True)
