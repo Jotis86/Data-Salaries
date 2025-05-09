@@ -424,6 +424,31 @@ def home_page():
         .hero-container h1, .hero-container p {
             color: white !important;
         }
+        
+        /* Sidebar menu styling - make it blue for better visibility */
+        .stApp[data-theme="dark"] .stSelectbox label, 
+        .stApp[data-theme="dark"] .stRadio label,
+        .stApp[data-theme="dark"] .css-1inwz65 label,
+        .stApp[data-theme="dark"] .css-1inwz65 p,
+        .stApp[data-theme="dark"] .css-1inwz65 span {
+            color: #3B82F6 !important; /* Bright blue */
+        }
+        
+        /* Main menu items styling in sidebar */
+        .stApp .st-emotion-cache-16txtl3 p {
+            color: #3B82F6 !important; /* Bright blue for menu items */
+            font-weight: 600;
+        }
+        
+        /* Fix for section headers - make sure they're blue */
+        .stApp h2, .stApp h3 {
+            color: #3B82F6 !important;
+        }
+        
+        /* Make sure main headers use the custom class */
+        .main-header, .section-header, .subsection-header {
+            color: #3B82F6 !important;
+        }
     </style>
     """, unsafe_allow_html=True)
     
@@ -439,8 +464,8 @@ def home_page():
     </div>
     """, unsafe_allow_html=True)
     
-    # About the app section
-    st.markdown('<h2 class="custom-header">About This App</h2>', unsafe_allow_html=True)
+    # About the app section - with custom class to ensure blue color
+    st.markdown('<h2 class="custom-header" style="color: #3B82F6 !important;">About This App</h2>', unsafe_allow_html=True)
     
     st.markdown("""
     <div class="info-card">
@@ -456,8 +481,8 @@ def home_page():
     </div>
     """, unsafe_allow_html=True)
     
-    # How to use section
-    st.markdown('<h2 class="custom-header">How to Use This App</h2>', unsafe_allow_html=True)
+    # How to use section - with custom class to ensure blue color
+    st.markdown('<h2 class="custom-header" style="color: #3B82F6 !important;">How to Use This App</h2>', unsafe_allow_html=True)
     
     st.markdown("""
     <div class="info-card">
@@ -472,8 +497,8 @@ def home_page():
     </div>
     """, unsafe_allow_html=True)
     
-    # Data sources and limitations
-    st.markdown('<h2 class="custom-header">Data Sources & Limitations</h2>', unsafe_allow_html=True)
+    # Data sources and limitations - with custom class to ensure blue color
+    st.markdown('<h2 class="custom-header" style="color: #3B82F6 !important;">Data Sources & Limitations</h2>', unsafe_allow_html=True)
     
     st.markdown("""
     <div class="limitations-container">
